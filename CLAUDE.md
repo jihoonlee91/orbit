@@ -41,3 +41,5 @@ npx tsc --noEmit -p tsconfig.app.json
 - `docs/FEATURES/main.md` — 메인 화면 기능
 - `docs/FEATURES/game_rule.md` — 게임 규칙
 - `docs/FEATURES/mission1.md` — 미션 1 (튜토리얼 스테이지)
+- `docs/PLAN.md` — Phase별 목표를 세운 파일
+- `docs/design/` — PLAN.md의 세부 Phase(1-1~1-4, 2-1~2-7, 3-1~3-4, 4-1~4-4) 별 설계문서
