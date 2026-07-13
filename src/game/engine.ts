@@ -22,7 +22,7 @@ import {
 import type { Ball, Item, ItemType } from './types'
 
 export function createStage(stageIndex: number): Ball[] {
-  const count = stageIndex + 1
+  const count = Math.min(stageIndex + 1, 8)
   const speedMultiplier = 1 + stageIndex * 0.15
   const baseVx = 100 * speedMultiplier
   const balls: Ball[] = []

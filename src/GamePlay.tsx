@@ -561,9 +561,9 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
   }, [])
 
   useEffect(() => {
-    startBgm()
+    startBgm(stageIndex)
     return () => stopBgm()
-  }, [])
+  }, [stageIndex])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -900,13 +900,16 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
     <div className="gameplay">
       <div className="gameplay-hud">
         <span className="hud-stage">Stage {stageIndex + 1}</span>
-        <div className="hp-bar">
+        <div className="hp-bar" aria-label={`HP ${hp} of ${MAX_HP}`}>
           {Array.from({ length: MAX_HP }, (_, i) => (
             <span
               key={i}
               className={`hp-segment ${i < hp ? 'hp-filled' : ''}`}
             />
           ))}
+          <span className="hp-text">
+            {hp}/{MAX_HP}
+          </span>
         </div>
         <span className="hud-score">Score {score}</span>
       </div>
@@ -956,9 +959,12 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
           <div>
             <h3>Progress</h3>
             <ol className="stage-roster">
-              {STAGE_NAMES.slice(0, STAGE_COUNT).map((name, i) => (
+              {Array.from(
+                { length: STAGE_COUNT },
+                (_, i) => STAGE_NAMES[i % STAGE_NAMES.length],
+              ).map((name, i) => (
                 <li
-                  key={name}
+                  key={i}
                   className={
                     i === stageIndex
                       ? 'stage-current'

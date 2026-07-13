@@ -67,15 +67,26 @@ export function playItemSound() {
   playTone(1320, 0.12, 'sine', 0.06, 0.08)
 }
 
-const BGM_PATTERN = [262, 330, 392, 330, 294, 330, 392, 494]
+// One note pattern per world-tour stage theme (Fuji, Guilin, Emerald Temple,
+// Angkor Wat, Ayers Rock). These are original abstract arpeggios chosen for
+// mood (bright/exotic/stately/spacious), not real traditional melodies.
+const BGM_PATTERNS = [
+  [262, 294, 330, 392, 440, 392, 330, 294],
+  [294, 330, 392, 440, 494, 440, 392, 330],
+  [262, 311, 349, 392, 466, 392, 349, 311],
+  [220, 262, 294, 330, 294, 262, 220, 196],
+  [196, 294, 196, 392, 196, 294, 196, 392],
+]
 
-export function startBgm() {
+export function startBgm(stageIndex = 0) {
   const ctx = getContext()
-  if (!ctx || bgmTimer) return
+  if (!ctx) return
+  stopBgm()
 
+  const pattern = BGM_PATTERNS[stageIndex % BGM_PATTERNS.length]
   let i = 0
   bgmTimer = setInterval(() => {
-    playTone(BGM_PATTERN[i % BGM_PATTERN.length], 0.35, 'sine', 0.025)
+    playTone(pattern[i % pattern.length], 0.35, 'sine', 0.025)
     i += 1
   }, 400)
 }

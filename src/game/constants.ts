@@ -24,7 +24,7 @@ export const SCORE_BY_LEVEL = [300, 150, 100]
 
 export const COMBO_WINDOW_MS = 1500
 
-export const STAGE_COUNT = 5
+export const STAGE_COUNT = 10
 
 export const OBSTACLE_WIDTH = 160
 export const OBSTACLE_HEIGHT = 18
