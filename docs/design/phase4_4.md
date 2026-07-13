@@ -11,6 +11,7 @@
 - Sound/BGM are implemented by synthesizing directly with Web Audio API oscillators, without using copyrighted external audio
   - Sound effects: ball hit (pitch varies by level), player hit, stage clear, game over
   - BGM: background music that loops a short arpeggio pattern at low volume; playback starts after the first user interaction (clicking the start button), per browser autoplay policy
+  - Each stage's theme gets its own note pattern/scale for the BGM loop (a different mood per world-tour stage), restarting when the stage changes. These are original, abstract patterns (not real traditional melodies) to avoid misrepresenting any specific culture's actual music
 - Visual graphics are improved as follows
   - Background: a vertical gradient plus a ground line instead of a flat color
   - Balls: different colors per level (small = pink, medium = green, large = blue) plus a radial gradient for a sense of depth
