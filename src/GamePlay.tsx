@@ -597,7 +597,7 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
       ctx.fill()
       ctx.restore()
 
-      ctx.font = "12px 'Press Start 2P', monospace"
+      ctx.font = "12px 'Galmuri11', monospace"
       ctx.textAlign = 'center'
       for (const p of popupsRef.current) {
         ctx.globalAlpha = p.life / p.maxLife
