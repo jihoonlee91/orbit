@@ -15,4 +15,7 @@
 - Player: fixed y at the bottom, a rectangle that can move left/right, movement speed 300px/s (keyboard ←/→ or A/D)
 - Fire: Space key, only 1 harpoon can exist at a time by default (the existing harpoon must disappear before firing again; the double-wire power-up raises this to 2)
 - The harpoon moves upward from the player's x position at 700px/s, and despawns on reaching the ceiling or colliding with a ball
-- Touch/mobile controls: on-screen Left/Right/Fire buttons drive the same input state as the keyboard (held-down = movement/fire continues, matching keydown/keyup semantics), shown only on touch-capable viewports (`(pointer: coarse)`) so desktop is unaffected
+- Touch/mobile controls: direct touch on the canvas, no on-screen buttons
+  - Drag (touch + move): moves the player by the same horizontal delta the finger moved, relative to where the ship was when the touch started (not "jump to finger position") — feels like sliding the ship, not teleporting it
+  - Tap (touch down and up without dragging past a small threshold): fires once, equivalent to a single Space press
+  - Implemented as pointer events on the canvas itself (`touch-action: none` to prevent page scroll while dragging)
