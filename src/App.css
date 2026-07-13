@@ -86,7 +86,7 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  width: min(1200px, 92vw);
+  width: min(1400px, 96vw);
   padding: 8px 4px;
   color: #1e293b;
   font-weight: 700;
@@ -112,15 +112,65 @@
   border-color: #b91c1c;
 }
 
-.gameplay canvas {
+.gameplay-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: min(1400px, 96vw);
+}
+
+.gameplay-body canvas {
   display: block;
-  width: min(1200px, 92vw);
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
   height: auto;
   border-radius: 8px;
 }
 
-.gameplay-help {
-  color: #475569;
+.hint-panel {
+  flex: 0 0 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(30, 41, 59, 0.15);
+  color: #1e293b;
+  text-align: left;
+}
+
+.hint-panel h3 {
+  margin: 0 0 8px;
   font-size: 14px;
+  color: #0f172a;
+}
+
+.stage-roster {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.stage-current {
+  font-weight: 700;
+  color: #0ea5e9;
+}
+
+.stage-cleared {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.hint-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
   line-height: 1.6;
+  color: #334155;
 }

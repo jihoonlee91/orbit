@@ -12,6 +12,7 @@ import {
   LEVEL_RADIUS,
   SCORE_BY_LEVEL,
   COMBO_WINDOW_MS,
+  STAGE_COUNT,
   OBSTACLE_X,
   OBSTACLE_Y,
   OBSTACLE_WIDTH,
@@ -29,6 +30,16 @@ import type { Ball, Harpoon } from './game/types'
 
 const BALL_COLORS = ['#fb7185', '#facc15', '#38bdf8']
 const GROUND_Y = CANVAS_HEIGHT - 90
+const STAGE_NAMES = ['일본', '이집트', '바르셀로나', '그리스', '로마']
+
+const HINTS = [
+  '← → 또는 A / D : 이동',
+  'Space : 발사 (발사체는 하나만 유지)',
+  '공을 맞히면 작아지며 둘로 분열, 가장 작을 때 맞히면 제거',
+  '줄무늬 발판은 발사체를 막고 공을 튕겨냅니다',
+  '짧은 시간 안에 연속으로 맞히면 콤보 점수 배율 증가',
+  '공에 닿으면 HP 1 감소, 이후 잠깐 무적 시간이 주어집니다',
+]
 
 type Particle = {
   x: number
@@ -598,13 +609,44 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
         </div>
         <span className="hud-score">점수 {score}</span>
       </div>
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        style={{ border: '1px solid #2e303a' }}
-      />
-      <p className="gameplay-help">← → (또는 A/D) 이동, Space 발사</p>
+      <div className="gameplay-body">
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          style={{ border: '1px solid #2e303a' }}
+        />
+        <aside className="hint-panel">
+          <div>
+            <h3>진행 상황</h3>
+            <ol className="stage-roster">
+              {STAGE_NAMES.slice(0, STAGE_COUNT).map((name, i) => (
+                <li
+                  key={name}
+                  className={
+                    i === stageIndex
+                      ? 'stage-current'
+                      : i < stageIndex
+                        ? 'stage-cleared'
+                        : ''
+                  }
+                >
+                  {i + 1}. {name}
+                  {i < stageIndex ? ' ✓' : ''}
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div>
+            <h3>도움말</h3>
+            <ul className="hint-list">
+              {HINTS.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      </div>
     </div>
   )
 }
