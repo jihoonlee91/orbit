@@ -30,7 +30,13 @@ npx tsc --noEmit -p tsconfig.app.json
 
 ## 아키텍처
 
-- 단일 페이지 구조의 최소 템플릿입니다. 엔트리포인트는 `src/main.tsx` → `src/App.tsx`.
+- 엔트리포인트는 `src/main.tsx` → `src/App.tsx`.
+- `src/App.tsx`: 메인/게임 선택/플레이/종료 4개 화면 전환과 스테이지 진행, 최고 점수(localStorage) 상태를 관리하는 최상위 컴포넌트.
+- `src/GamePlay.tsx`: 실제 게임 화면. Canvas 2D로 배경(스테이지별 테마)·장애물·공·발사체·플레이어·파티클을 그리고, `requestAnimationFrame` 기반 게임 루프에서 입력 처리, 물리 업데이트, 충돌 판정, 점수/콤보/HP 갱신을 수행.
+- `src/game/constants.ts`: 캔버스 크기, 플레이어/발사체 속도, 중력·반발 계수, HP, 공 크기별 점수, 콤보 윈도우, 스테이지 수, 장애물 위치 등 게임 상수.
+- `src/game/types.ts`: `Ball`, `Harpoon`, `StageResult` 등 게임 도메인 타입.
+- `src/game/engine.ts`: 스테이지 생성(`createStage`), 공의 중력/반사 물리(`stepBall`), 분열(`splitBall`), 발사체-공/발사체-장애물/공-플레이어 충돌 판정 등 순수 로직.
+- `src/game/audio.ts`: Web Audio API 오실레이터로 합성한 효과음(공 명중, 피격, 클리어, 게임 오버)과 BGM 재생/정지.
 - 프로젝트 루트의 `tsconfig.json`은 `tsconfig.app.json`(앱 소스용)과 `tsconfig.node.json`(Vite 설정 등 Node 환경용) 두 개의 project reference로 분리되어 있습니다.
 - `vite.config.ts`는 `@vitejs/plugin-react` 플러그인만 사용하는 기본 설정입니다.
 - Oxlint 설정은 `.oxlintrc.json`에 있으며, 타입 인식 린트 규칙(typeAware)은 기본적으로 비활성화되어 있습니다.
