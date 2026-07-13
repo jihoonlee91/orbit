@@ -95,6 +95,25 @@
   color: #f59e0b;
 }
 
+.result-detail {
+  font-family: var(--font-game);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.score-history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-game);
+  font-size: var(--fs-xs);
+  color: #334155;
+}
+
 .screen-button {
   padding: 14px 28px;
   font-family: var(--font-game);

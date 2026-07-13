@@ -31,8 +31,6 @@ export const OBSTACLE_HEIGHT = 18
 export const OBSTACLE_X = CANVAS_WIDTH / 2 - OBSTACLE_WIDTH / 2
 export const OBSTACLE_Y = CANVAS_HEIGHT / 2 - OBSTACLE_HEIGHT / 2
 
-export const HIGH_SCORE_KEY = 'pang_high_score'
-
 // --- Power-up items ---
 export const ITEM_RADIUS = 12
 export const ITEM_GRAVITY = 260
