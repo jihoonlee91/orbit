@@ -12,6 +12,7 @@ export const HARPOON_SPEED = 700
 
 export const GRAVITY = 900
 export const RESTITUTION = 0.995
+export const MIN_BOUNCE_SPEED = 220
 export const SPLIT_VY_BASE = 250
 export const SPLIT_VY_PER_LEVEL = 150
 

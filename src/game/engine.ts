@@ -7,6 +7,7 @@ import {
   PLAYER_Y,
   GRAVITY,
   RESTITUTION,
+  MIN_BOUNCE_SPEED,
   SPLIT_VY_BASE,
   SPLIT_VY_PER_LEVEL,
   OBSTACLE_X,
@@ -33,6 +34,22 @@ export function createStage(stageIndex: number): Ball[] {
   return balls
 }
 
+// Reflects a velocity component off a surface, applying RESTITUTION decay
+// but never letting the bounce speed fade below MIN_BOUNCE_SPEED — otherwise
+// the geometric decay eventually shrinks bounces to an imperceptible height
+// and the ball looks like it stopped bouncing (rolls along the floor instead).
+function reflect(v: number): number {
+  const bounced = -v * RESTITUTION
+  const sign = bounced < 0 ? -1 : 1
+  return Math.abs(bounced) < MIN_BOUNCE_SPEED ? sign * MIN_BOUNCE_SPEED : bounced
+}
+
+function reflectAway(v: number, towardPositive: boolean): number {
+  const bounced = Math.abs(v) * RESTITUTION * (towardPositive ? 1 : -1)
+  const minMagnitude = Math.max(Math.abs(bounced), MIN_BOUNCE_SPEED)
+  return towardPositive ? minMagnitude : -minMagnitude
+}
+
 export function stepBall(ball: Ball, dtSec: number): Ball {
   const r = LEVEL_RADIUS[ball.level]
   let { x, y, vx, vy } = ball
@@ -43,18 +60,18 @@ export function stepBall(ball: Ball, dtSec: number): Ball {
 
   if (x - r < 0) {
     x = r
-    vx = -vx * RESTITUTION
+    vx = reflect(vx)
   } else if (x + r > CANVAS_WIDTH) {
     x = CANVAS_WIDTH - r
-    vx = -vx * RESTITUTION
+    vx = reflect(vx)
   }
 
   if (y - r < 0) {
     y = r
-    vy = -vy * RESTITUTION
+    vy = reflect(vy)
   } else if (y + r > CANVAS_HEIGHT) {
     y = CANVAS_HEIGHT - r
-    vy = -vy * RESTITUTION
+    vy = reflect(vy)
   }
 
   if (
@@ -67,16 +84,16 @@ export function stepBall(ball: Ball, dtSec: number): Ball {
     const fromBottom = y > OBSTACLE_Y + OBSTACLE_HEIGHT
     if (fromTop) {
       y = OBSTACLE_Y - r
-      vy = -Math.abs(vy) * RESTITUTION
+      vy = reflectAway(vy, false)
     } else if (fromBottom) {
       y = OBSTACLE_Y + OBSTACLE_HEIGHT + r
-      vy = Math.abs(vy) * RESTITUTION
+      vy = reflectAway(vy, true)
     } else if (x < OBSTACLE_X) {
       x = OBSTACLE_X - r
-      vx = -Math.abs(vx) * RESTITUTION
+      vx = reflectAway(vx, false)
     } else {
       x = OBSTACLE_X + OBSTACLE_WIDTH + r
-      vx = Math.abs(vx) * RESTITUTION
+      vx = reflectAway(vx, true)
     }
   }
 
