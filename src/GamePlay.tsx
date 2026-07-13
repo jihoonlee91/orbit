@@ -27,6 +27,14 @@ import {
   ballHitsPlayer,
 } from './game/engine'
 import type { Ball, Harpoon } from './game/types'
+import {
+  playHitSound,
+  playPlayerHitSound,
+  playClearSound,
+  playGameOverSound,
+  startBgm,
+  stopBgm,
+} from './game/audio'
 
 const BALL_COLORS = ['#fb7185', '#facc15', '#38bdf8']
 const GROUND_Y = CANVAS_HEIGHT - 90
@@ -390,6 +398,11 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
   }, [])
 
   useEffect(() => {
+    startBgm()
+    return () => stopBgm()
+  }, [])
+
+  useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -463,6 +476,7 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
               hitBall.y,
               BALL_COLORS[hitBall.level],
             )
+            playHitSound(hitBall.level)
             popupsRef.current.push({
               x: hitBall.x,
               y: hitBall.y,
@@ -488,8 +502,11 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
             hpRef.current -= 1
             setHp(hpRef.current)
             invulnUntilRef.current = time + INVULN_MS
+            playPlayerHitSound()
             if (hpRef.current <= 0) {
               endedRef.current = true
+              playGameOverSound()
+              stopBgm()
               onGameOver(scoreRef.current)
             }
           }
@@ -497,6 +514,7 @@ function GamePlay({ stageIndex, onClear, onGameOver }: Props) {
 
         if (!endedRef.current && ballsRef.current.length === 0) {
           endedRef.current = true
+          playClearSound()
           onClear(scoreRef.current)
         }
       }
