@@ -120,7 +120,7 @@ function App() {
           className="screen-button screen-button-secondary"
           onClick={startDemo}
         >
-          Watch Demo
+          Watch AI Play
         </button>
         <button
           type="button"
@@ -170,7 +170,7 @@ function App() {
           className="screen-button screen-button-secondary"
           onClick={() => setScreen('main')}
         >
-          Exit Demo
+          Exit AI Mode
         </button>
       </div>
     )

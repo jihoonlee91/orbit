@@ -758,7 +758,7 @@ function GamePlay({ stageIndex, onClear, onGameOver, demo = false }: Props) {
           </span>
         </div>
         <span className="hud-score">Score {score}</span>
-        {demo && <span className="demo-badge">DEMO</span>}
+        {demo && <span className="demo-badge">AI</span>}
       </div>
       {demo && (
         <div className="ai-key-row">
