@@ -39,15 +39,18 @@ Husky runs `.husky/pre-commit` before every commit: `prettier --check`, `tsc --n
 ## Architecture
 
 - The entry point is `src/main.tsx` → `src/App.tsx`.
-- `src/App.tsx`: the top-level component that manages the 4 screen transitions (main/game select/play/end), stage progression, and high-score (localStorage) state.
-- `src/GamePlay.tsx`: the actual gameplay screen. Draws the background (per-stage theme), obstacles, balls, harpoons, player, and particles on Canvas 2D, and in a `requestAnimationFrame`-based game loop handles input, physics updates, collision detection, and score/combo/HP updates.
-- `src/game/constants.ts`: game constants — canvas size, player/harpoon speed, gravity/restitution coefficients, HP, per-ball-size score, combo window, stage count, obstacle position, etc.
-- `src/game/types.ts`: game domain types such as `Ball`, `Harpoon`, `StageResult`.
-- `src/game/engine.ts`: pure logic — stage generation (`createStage`), ball gravity/bounce physics (`stepBall`), splitting (`splitBall`), harpoon-ball/harpoon-obstacle/ball-player collision detection, etc.
-- `src/game/audio.ts`: sound effects synthesized with Web Audio API oscillators (ball hit, player hit, clear, game over) plus BGM playback/stop.
+- `src/App.tsx`: the top-level component that manages screen transitions (main/countdown/play/demo/map/end), stage progression, and local score-history state.
+- `src/GamePlay.tsx`: the actual gameplay screen. Draws obstacles, balls, harpoons, items, player, and particles on Canvas 2D (backgrounds come from `src/game/backgrounds.ts`), and in a `requestAnimationFrame`-based game loop handles input (keyboard/touch, or the demo-mode AI), physics updates, collision detection, and score/combo/HP/buff updates.
+- `src/StageMap.tsx`: read-only stage list with live background thumbnails, reusing `src/game/backgrounds.ts`.
+- `src/game/constants.ts`: game constants — canvas size, player/harpoon speed, gravity/restitution/min-bounce-speed, HP, per-ball-size score, combo window, stage count, obstacle position, item drop/duration constants, etc.
+- `src/game/types.ts`: game domain types such as `Ball`, `Harpoon`, `Item`, `StageResult`.
+- `src/game/engine.ts`: pure logic — stage generation (`createStage`), ball gravity/bounce physics (`stepBall`), splitting (`splitBall`/`explodeToSmallest`), item rolls (`rollItemDrop`), and harpoon/ball/player/item collision detection. Covered by `src/game/engine.test.ts` (Vitest).
+- `src/game/backgrounds.ts`: the 5 world-tour stage background drawing functions, shared by `GamePlay.tsx` and `StageMap.tsx`.
+- `src/game/audio.ts`: sound effects synthesized with Web Audio API oscillators (ball hit, player hit, item pickup, clear, game over) plus per-stage-theme BGM patterns.
+- `src/game/scoreHistory.ts`: local score-history storage (`localStorage`), player name, and rank computation.
 - The root `tsconfig.json` is split into two project references: `tsconfig.app.json` (for app source) and `tsconfig.node.json` (for the Node environment, e.g. Vite config).
-- `vite.config.ts` is a basic config that only uses the `@vitejs/plugin-react` plugin.
-- The Oxlint config lives in `.oxlintrc.json`, with type-aware lint rules (typeAware) disabled by default.
+- `vite.config.ts` sets the GitHub Pages `base` path and uses the `@vitejs/plugin-react` plugin; `vitest.config.ts` is separate, for the test runner.
+- The Oxlint config lives in `.oxlintrc.json`, with type-aware lint rules (typeAware) disabled by default. Prettier config is in `.prettierrc.json`.
 
 ## Working Style
 
@@ -80,4 +83,4 @@ If a body is needed, leave a blank line after the subject and add the descriptio
 - `docs/FEATURES/game_rule.md` — game rules
 - `docs/FEATURES/mission1.md` — mission 1 (tutorial stage)
 - `docs/PLAN.md` — file laying out the goals for each phase
-- `docs/design/` — detailed design docs for each phase in PLAN.md (1-1 to 1-4, 2-1 to 2-7, 3-1 to 3-4, 4-1 to 4-4)
+- `docs/design/` — detailed design docs for each phase in PLAN.md (1-1 to 1-6, 2-1 to 2-7, 3-1 to 3-4, 4-1 to 4-4)
