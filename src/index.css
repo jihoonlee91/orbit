@@ -123,6 +123,51 @@ input:focus-visible {
     0 0 90px rgba(34, 211, 238, 0.12);
 }
 
+/* Low-key CRT cabinet backdrop for the classic arcade skin. */
+#root {
+  background:
+    radial-gradient(
+      circle at 50% 32%,
+      rgba(255, 201, 40, 0.2),
+      transparent 24%
+    ),
+    linear-gradient(180deg, #43206b 0%, #173f70 45%, #0b153a 72%, #07081d 100%);
+}
+
+#root::before {
+  opacity: 0.32;
+  background-image:
+    linear-gradient(rgba(77, 231, 232, 0.16) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(77, 231, 232, 0.16) 2px, transparent 2px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, transparent 18%, #000 75%);
+}
+
+#root::after {
+  display: none;
+  z-index: 0;
+  inset: 0;
+  width: auto;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0,
+    rgba(255, 255, 255, 0.14) 1px,
+    rgba(0, 0, 0, 0.12) 1px,
+    rgba(0, 0, 0, 0.12) 3px
+  );
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.48);
+}
+
+#root > * {
+  position: relative;
+  z-index: 1;
+}
+
 h1,
 h2,
 p {

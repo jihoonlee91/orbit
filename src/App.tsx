@@ -249,9 +249,9 @@ function App() {
           <span />
           <span />
         </div>
-        <p className="main-kicker">World Tour Arcade</p>
+        <p className="main-kicker">Classic World Tour • 1 Player</p>
         <h1>PANG</h1>
-        <p className="main-tagline">Pop. Split. Travel the world.</p>
+        <p className="main-tagline">Pop • Split • Clear the Stage</p>
         <p className="controls-summary main-controls">{CONTROLS_SUMMARY}</p>
         <div className="main-actions">
           <button
@@ -292,7 +292,7 @@ function App() {
             </button>
           )}
         </div>
-        <p className="space-hint">Press Space to Start</p>
+        <p className="space-hint">▼ Press Space to Start ▼</p>
       </div>
     )
   }
