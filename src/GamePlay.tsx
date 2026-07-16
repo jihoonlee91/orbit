@@ -59,6 +59,7 @@ import {
 import { drawBackground, STAGE_NAMES } from './game/backgrounds'
 import { InputController, type InputAction } from './game/input/InputController'
 import type { GameSettings } from './game/settings'
+import { addToTotalScore } from './game/scoring'
 import TouchControls from './components/TouchControls'
 import {
   advanceFixedStep,
@@ -829,7 +830,7 @@ function GamePlay({
               const gained = Math.round(
                 SCORE_BY_LEVEL[hitBall.level] * (1 + comboRef.current * 0.1),
               )
-              scoreRef.current += gained
+              scoreRef.current = addToTotalScore(scoreRef.current, gained)
               setScore(scoreRef.current)
 
               spawnBurst(
@@ -1016,7 +1017,7 @@ function GamePlay({
             endedRef.current = true
             const timeBonus =
               Math.ceil(timeRemainingRef.current) * TIME_BONUS_PER_SECOND
-            scoreRef.current += timeBonus
+            scoreRef.current = addToTotalScore(scoreRef.current, timeBonus)
             setScore(scoreRef.current)
             popupsRef.current.push({
               x: CANVAS_WIDTH / 2,
@@ -1179,7 +1180,7 @@ function GamePlay({
         >
           Time {timeRemaining}
         </span>
-        <span className="hud-score">Score {score}</span>
+        <span className="hud-score">Total Score {score}</span>
         <span className="hud-combo">Combo ×{comboRef.current}</span>
         {settings.showFps && <span className="hud-fps">{fps} FPS</span>}
         {demo && <span className="demo-badge">AI</span>}
