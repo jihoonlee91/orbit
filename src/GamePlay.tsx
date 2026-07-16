@@ -510,27 +510,248 @@ function drawBall(ctx: CanvasRenderingContext2D, ball: Ball) {
   ctx.restore()
 }
 
+function traceShield(ctx: CanvasRenderingContext2D, scale = 1) {
+  ctx.beginPath()
+  ctx.moveTo(0, -11 * scale)
+  ctx.lineTo(9 * scale, -7 * scale)
+  ctx.lineTo(8 * scale, 3 * scale)
+  ctx.quadraticCurveTo(6 * scale, 10 * scale, 0, 13 * scale)
+  ctx.quadraticCurveTo(-6 * scale, 10 * scale, -8 * scale, 3 * scale)
+  ctx.lineTo(-9 * scale, -7 * scale)
+  ctx.closePath()
+}
+
+function traceStar(
+  ctx: CanvasRenderingContext2D,
+  outer: number,
+  inner: number,
+) {
+  ctx.beginPath()
+  for (let point = 0; point < 10; point += 1) {
+    const radius = point % 2 === 0 ? outer : inner
+    const angle = -Math.PI / 2 + (Math.PI * point) / 5
+    const x = Math.cos(angle) * radius
+    const y = Math.sin(angle) * radius
+    if (point === 0) ctx.moveTo(x, y)
+    else ctx.lineTo(x, y)
+  }
+  ctx.closePath()
+}
+
+function drawFallingItemIcon(
+  ctx: CanvasRenderingContext2D,
+  type: ItemType,
+  color: string,
+) {
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.strokeStyle = '#ffffff'
+  ctx.fillStyle = color
+  ctx.lineWidth = 2.2
+
+  switch (type) {
+    case 'doubleWire':
+      for (const x of [-5, 5]) {
+        ctx.beginPath()
+        ctx.moveTo(x, 10)
+        ctx.lineTo(x, -8)
+        ctx.moveTo(x - 3, -5)
+        ctx.lineTo(x, -10)
+        ctx.lineTo(x + 3, -5)
+        ctx.stroke()
+      }
+      break
+    case 'powerWire':
+      ctx.lineWidth = 5
+      ctx.beginPath()
+      ctx.moveTo(0, 10)
+      ctx.lineTo(0, -7)
+      ctx.stroke()
+      ctx.fillStyle = '#fef08a'
+      ctx.beginPath()
+      ctx.moveTo(0, -13)
+      ctx.lineTo(-6, -5)
+      ctx.lineTo(6, -5)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case 'vulcan':
+      ctx.save()
+      ctx.rotate(-0.18)
+      ctx.fillStyle = '#fb923c'
+      ctx.fillRect(-8, -5, 11, 11)
+      ctx.fillStyle = '#e2e8f0'
+      for (const y of [-6, -1, 4]) ctx.fillRect(2, y, 11, 3)
+      ctx.fillStyle = '#64748b'
+      ctx.fillRect(-3, 5, 5, 8)
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 1.5
+      ctx.strokeRect(-8, -5, 11, 11)
+      ctx.restore()
+      break
+    case 'clock':
+      ctx.beginPath()
+      ctx.arc(0, 0, 10, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.stroke()
+      ctx.strokeStyle = '#0f172a'
+      ctx.beginPath()
+      ctx.moveTo(0, 0)
+      ctx.lineTo(0, -6)
+      ctx.moveTo(0, 0)
+      ctx.lineTo(5, 3)
+      ctx.stroke()
+      break
+    case 'hourglass':
+      ctx.strokeStyle = '#fef3c7'
+      ctx.beginPath()
+      ctx.moveTo(-8, -11)
+      ctx.lineTo(8, -11)
+      ctx.moveTo(-8, 11)
+      ctx.lineTo(8, 11)
+      ctx.moveTo(-6, -9)
+      ctx.quadraticCurveTo(-5, -2, 0, 0)
+      ctx.quadraticCurveTo(5, 3, 6, 9)
+      ctx.moveTo(6, -9)
+      ctx.quadraticCurveTo(5, -2, 0, 0)
+      ctx.quadraticCurveTo(-5, 3, -6, 9)
+      ctx.stroke()
+      ctx.fillStyle = '#fbbf24'
+      ctx.beginPath()
+      ctx.moveTo(-4, 7)
+      ctx.lineTo(4, 7)
+      ctx.lineTo(0, 2)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case 'barrier':
+      traceShield(ctx)
+      ctx.fillStyle = '#34d399'
+      ctx.fill()
+      ctx.stroke()
+      ctx.strokeStyle = '#064e3b'
+      ctx.beginPath()
+      ctx.moveTo(0, -7)
+      ctx.lineTo(0, 8)
+      ctx.moveTo(-6, -4)
+      ctx.lineTo(6, -4)
+      ctx.stroke()
+      break
+    case 'oneUp':
+      ctx.fillStyle = '#f472b6'
+      ctx.beginPath()
+      ctx.moveTo(0, 10)
+      ctx.bezierCurveTo(-13, 1, -11, -9, -5, -9)
+      ctx.bezierCurveTo(-2, -9, 0, -6, 0, -4)
+      ctx.bezierCurveTo(0, -6, 2, -9, 5, -9)
+      ctx.bezierCurveTo(11, -9, 13, 1, 0, 10)
+      ctx.fill()
+      ctx.stroke()
+      ctx.strokeStyle = '#ffffff'
+      ctx.beginPath()
+      ctx.moveTo(0, -4)
+      ctx.lineTo(0, 4)
+      ctx.moveTo(-4, 0)
+      ctx.lineTo(4, 0)
+      ctx.stroke()
+      break
+    case 'dynamite':
+      ctx.save()
+      ctx.rotate(-0.12)
+      ctx.fillStyle = '#ef4444'
+      for (const x of [-7, 0, 7]) {
+        ctx.fillRect(x - 3, -9, 6, 18)
+      }
+      ctx.fillStyle = '#111827'
+      ctx.fillRect(-11, -3, 22, 6)
+      ctx.strokeStyle = '#fef3c7'
+      ctx.beginPath()
+      ctx.moveTo(7, -9)
+      ctx.quadraticCurveTo(12, -15, 14, -10)
+      ctx.stroke()
+      ctx.fillStyle = '#fde047'
+      ctx.beginPath()
+      ctx.arc(14, -10, 3, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+      break
+    case 'speedBoost':
+      ctx.strokeStyle = '#5eead4'
+      ctx.lineWidth = 3
+      for (const offset of [-6, 1, 8]) {
+        ctx.beginPath()
+        ctx.moveTo(-9, offset - 6)
+        ctx.lineTo(0, offset)
+        ctx.lineTo(-9, offset + 6)
+        ctx.moveTo(1, offset - 6)
+        ctx.lineTo(10, offset)
+        ctx.lineTo(1, offset + 6)
+        ctx.stroke()
+      }
+      break
+    case 'invincible':
+      traceShield(ctx, 1.05)
+      ctx.fillStyle = '#7e22ce'
+      ctx.fill()
+      ctx.stroke()
+      traceStar(ctx, 7, 3.2)
+      ctx.fillStyle = '#fef08a'
+      ctx.fill()
+      break
+    case 'timePlus':
+      ctx.beginPath()
+      ctx.arc(-3, 1, 9, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.stroke()
+      ctx.strokeStyle = '#0f172a'
+      ctx.beginPath()
+      ctx.moveTo(-3, 1)
+      ctx.lineTo(-3, -5)
+      ctx.moveTo(-3, 1)
+      ctx.lineTo(1, 4)
+      ctx.stroke()
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 2.5
+      ctx.beginPath()
+      ctx.moveTo(7, -7)
+      ctx.lineTo(7, 3)
+      ctx.moveTo(2, -2)
+      ctx.lineTo(12, -2)
+      ctx.stroke()
+      break
+    case 'scoreBonus':
+      ctx.beginPath()
+      ctx.arc(0, 0, 11, 0, Math.PI * 2)
+      ctx.fillStyle = '#facc15'
+      ctx.fill()
+      ctx.stroke()
+      traceStar(ctx, 7, 3.2)
+      ctx.fillStyle = '#fff7b2'
+      ctx.fill()
+      break
+  }
+}
+
 function drawItem(ctx: CanvasRenderingContext2D, item: Item) {
   const color = ITEM_COLORS[item.type]
+  const pulse = 1 + Math.sin(item.y / 12) * 0.06
 
   ctx.save()
+  ctx.translate(item.x, item.y)
+  ctx.scale(pulse, pulse)
   ctx.shadowColor = color
-  ctx.shadowBlur = 10
+  ctx.shadowBlur = 16
   ctx.beginPath()
-  ctx.arc(item.x, item.y, ITEM_RADIUS, 0, Math.PI * 2)
-  ctx.fillStyle = color
+  ctx.arc(0, 0, ITEM_RADIUS, 0, Math.PI * 2)
+  ctx.fillStyle = '#07142f'
   ctx.fill()
-  ctx.lineWidth = 2
-  ctx.strokeStyle = '#ffffffcc'
+  ctx.lineWidth = 3
+  ctx.strokeStyle = color
   ctx.stroke()
-  ctx.restore()
 
-  ctx.fillStyle = '#0f172a'
-  ctx.font = "bold 13px 'Galmuri11', monospace"
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(ITEM_LABELS[item.type], item.x, item.y + 1)
-  ctx.textBaseline = 'alphabetic'
+  ctx.shadowBlur = 5
+  drawFallingItemIcon(ctx, item.type, color)
+  ctx.restore()
 }
 
 function spawnBurst(

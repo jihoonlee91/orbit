@@ -94,7 +94,7 @@ export const OBSTACLE_X = DEFAULT_OBSTACLE.x
 export const OBSTACLE_Y = DEFAULT_OBSTACLE.y
 
 // --- Power-up items ---
-export const ITEM_RADIUS = 12
+export const ITEM_RADIUS = 16
 export const ITEM_GRAVITY = 260
 export const ITEM_DROP_CHANCE = 0.14
 
