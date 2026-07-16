@@ -703,6 +703,7 @@
   .touch-move,
   .touch-fire {
     pointer-events: auto;
+    transform: translateY(clamp(34px, 10vh, 50px));
   }
 
   .touch-move .touch-button {
