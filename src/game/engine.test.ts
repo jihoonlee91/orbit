@@ -152,6 +152,21 @@ describe('collision helpers', () => {
     expect(harpoonHitsBall(500, 500, ball)).toBe(false)
   })
 
+  it('detects a ball touching any part of the extended harpoon line', () => {
+    const ball: Ball = { id: 1, x: 100, y: 300, vx: 0, vy: 0, level: 2 }
+
+    // The tip has already travelled far above the ball, but the vertical
+    // harpoon line still runs through it all the way down to the player.
+    expect(harpoonHitsBall(100, 80, ball)).toBe(true)
+    expect(harpoonHitsBall(128, 80, ball)).toBe(true)
+    expect(harpoonHitsBall(129, 80, ball)).toBe(false)
+  })
+
+  it('does not hit a ball that is above the harpoon tip', () => {
+    const ball: Ball = { id: 1, x: 100, y: 40, vx: 0, vy: 0, level: 2 }
+    expect(harpoonHitsBall(100, 80, ball)).toBe(false)
+  })
+
   it('detects a ball overlapping the player', () => {
     const ball: Ball = { id: 1, x: 100, y: PLAYER_Y, vx: 0, vy: 0, level: 2 }
     expect(ballHitsPlayer(ball, 100)).toBe(true)

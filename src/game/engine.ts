@@ -129,15 +129,18 @@ export function splitBall(ball: Ball, nextId: () => number): Ball[] {
 
 export function harpoonHitsBall(
   harpoonX: number,
-  harpoonY: number,
+  harpoonTipY: number,
   ball: Ball,
+  harpoonBaseY = PLAYER_Y,
 ): boolean {
   const r = LEVEL_RADIUS[ball.level]
-  return (
-    Math.abs(harpoonX - ball.x) <= r &&
-    harpoonY >= ball.y - r &&
-    harpoonY <= ball.y + r
-  )
+  const segmentTop = Math.min(harpoonTipY, harpoonBaseY)
+  const segmentBottom = Math.max(harpoonTipY, harpoonBaseY)
+  const closestY = Math.min(Math.max(ball.y, segmentTop), segmentBottom)
+  const dx = ball.x - harpoonX
+  const dy = ball.y - closestY
+
+  return dx * dx + dy * dy <= r * r
 }
 
 export function ballHitsPlayer(ball: Ball, playerX: number): boolean {
