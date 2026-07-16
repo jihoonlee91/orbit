@@ -48,8 +48,8 @@ export default function SettingsDialog({
         Touch button size
         <input
           type="range"
-          min="56"
-          max="88"
+          min="72"
+          max="104"
           step="4"
           value={settings.touchButtonSize}
           onChange={(event) =>

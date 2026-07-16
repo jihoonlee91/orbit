@@ -619,7 +619,7 @@
 
   .canvas-column {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(148px, 21vw, 184px);
+    grid-template-columns: minmax(0, 1fr) clamp(184px, 24vw, 224px);
     gap: 10px;
     width: 100%;
     height: 100%;
@@ -648,8 +648,8 @@
   }
 
   .touch-button {
-    max-width: 72px;
-    max-height: 72px;
+    max-width: 92px;
+    max-height: 92px;
   }
 
   .item-notice {

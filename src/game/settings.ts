@@ -14,7 +14,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   masterVolume: 0.8,
   musicVolume: 0.45,
   effectsVolume: 0.8,
-  touchButtonSize: 68,
+  touchButtonSize: 84,
   touchButtonOpacity: 0.82,
   reducedMotion: false,
   screenShake: true,
@@ -29,7 +29,14 @@ export function loadSettings(): GameSettings {
     const stored = JSON.parse(
       localStorage.getItem(KEY) ?? '{}',
     ) as Partial<GameSettings>
-    return { ...DEFAULT_SETTINGS, ...stored }
+    return {
+      ...DEFAULT_SETTINGS,
+      ...stored,
+      touchButtonSize: Math.max(
+        80,
+        stored.touchButtonSize ?? DEFAULT_SETTINGS.touchButtonSize,
+      ),
+    }
   } catch {
     return { ...DEFAULT_SETTINGS }
   }
