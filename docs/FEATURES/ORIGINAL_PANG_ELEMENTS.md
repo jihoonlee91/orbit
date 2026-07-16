@@ -6,6 +6,8 @@ This implementation keeps the existing mobile-friendly HP system while restoring
 - Power Harpoon (`P`) instantly reaches the ceiling and remains for five seconds or until a balloon touches the wire.
 - Vulcan (`V`) fires up to five fast projectiles at 120 ms intervals. Its shots use point-projectile collision rather than the full persistent-wire collision.
 - Double Wire, Clock, Hourglass, Barrier, 1UP, and Dynamite remain available. Picking up a weapon replaces the previous weapon mode.
+- Speed Boost (`S`) increases movement speed by 60% for 10 seconds, while Invincible (`I`) prevents collision damage for 8 seconds.
+- Time Plus (`T`) immediately adds 15 seconds and Score Bonus (`$`) immediately adds 1,000 points to the cumulative run score.
 
 Reference behavior was compared against descriptions and screenshots for the original _Pang / Buster Bros._, including its persistent power wire, rapid-fire gun, time pressure, destructible/permanent barriers, ladders, and two-player mode.
 

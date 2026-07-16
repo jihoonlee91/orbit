@@ -72,14 +72,18 @@ export const ITEM_DROP_CHANCE = 0.14
 // Relative weights within a drop: double wire/clock/hourglass/barrier are common,
 // 1UP and dynamite are intentionally rare (dynamite is a risk item, 1UP is a reward item).
 export const ITEM_WEIGHTS: [ItemType, number][] = [
-  ['doubleWire', 18],
-  ['powerWire', 12],
-  ['vulcan', 12],
-  ['clock', 16],
-  ['hourglass', 16],
-  ['barrier', 14],
-  ['oneUp', 6],
-  ['dynamite', 6],
+  ['doubleWire', 14],
+  ['powerWire', 10],
+  ['vulcan', 10],
+  ['clock', 12],
+  ['hourglass', 12],
+  ['barrier', 10],
+  ['oneUp', 5],
+  ['dynamite', 5],
+  ['speedBoost', 10],
+  ['invincible', 6],
+  ['timePlus', 8],
+  ['scoreBonus', 8],
 ]
 
 export const MAX_HARPOONS_DEFAULT = 1
@@ -94,3 +98,8 @@ export const VULCAN_FIRE_INTERVAL_MS = 120
 export const CLOCK_DURATION_MS = 6000
 export const HOURGLASS_DURATION_MS = 8000
 export const HOURGLASS_SLOW_FACTOR = 0.4
+export const SPEED_BOOST_DURATION_MS = 10000
+export const SPEED_BOOST_MULTIPLIER = 1.6
+export const INVINCIBLE_DURATION_MS = 8000
+export const TIME_PLUS_SECONDS = 15
+export const SCORE_BONUS_POINTS = 1000

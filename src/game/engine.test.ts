@@ -196,6 +196,12 @@ describe('rollItemDrop', () => {
     const rand = () => values.shift() ?? 0
     expect(rollItemDrop(rand)).toBe('doubleWire')
   })
+
+  it('can select the newly added bonus items', () => {
+    const values = [0, 0.999]
+    const rand = () => values.shift() ?? 0
+    expect(rollItemDrop(rand)).toBe('scoreBonus')
+  })
 })
 
 describe('collision helpers', () => {

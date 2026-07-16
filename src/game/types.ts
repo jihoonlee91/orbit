@@ -23,6 +23,10 @@ export type ItemType =
   | 'barrier'
   | 'oneUp'
   | 'dynamite'
+  | 'speedBoost'
+  | 'invincible'
+  | 'timePlus'
+  | 'scoreBonus'
 
 export type Item = {
   id: number

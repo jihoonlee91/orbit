@@ -35,6 +35,11 @@ import {
   CLOCK_DURATION_MS,
   HOURGLASS_DURATION_MS,
   HOURGLASS_SLOW_FACTOR,
+  SPEED_BOOST_DURATION_MS,
+  SPEED_BOOST_MULTIPLIER,
+  INVINCIBLE_DURATION_MS,
+  TIME_PLUS_SECONDS,
+  SCORE_BONUS_POINTS,
 } from './game/constants'
 import type { Obstacle } from './game/constants'
 import {
@@ -92,6 +97,10 @@ const ITEM_LABELS: Record<ItemType, string> = {
   barrier: 'B',
   oneUp: '+',
   dynamite: '!',
+  speedBoost: 'S',
+  invincible: 'I',
+  timePlus: 'T',
+  scoreBonus: '$',
 }
 
 const ITEM_COLORS: Record<ItemType, string> = {
@@ -103,10 +112,20 @@ const ITEM_COLORS: Record<ItemType, string> = {
   barrier: '#34d399',
   oneUp: '#f472b6',
   dynamite: '#f87171',
+  speedBoost: '#2dd4bf',
+  invincible: '#c084fc',
+  timePlus: '#60a5fa',
+  scoreBonus: '#fde047',
 }
 
 const BUFF_LABELS: Record<
-  'doubleWire' | 'powerWire' | 'vulcan' | 'clock' | 'hourglass',
+  | 'doubleWire'
+  | 'powerWire'
+  | 'vulcan'
+  | 'clock'
+  | 'hourglass'
+  | 'speedBoost'
+  | 'invincible',
   string
 > = {
   doubleWire: 'Double Wire',
@@ -114,6 +133,8 @@ const BUFF_LABELS: Record<
   vulcan: 'Vulcan',
   clock: 'Clock (Stop)',
   hourglass: 'Hourglass (Slow)',
+  speedBoost: 'Speed Boost',
+  invincible: 'Invincible',
 }
 
 const TIMED_BUFF_KEYS = [
@@ -122,6 +143,8 @@ const TIMED_BUFF_KEYS = [
   'vulcan',
   'clock',
   'hourglass',
+  'speedBoost',
+  'invincible',
 ] as const
 
 const ITEM_ANNOUNCEMENTS: Record<ItemType, string> = {
@@ -133,6 +156,10 @@ const ITEM_ANNOUNCEMENTS: Record<ItemType, string> = {
   barrier: 'Barrier!',
   oneUp: '+1 HP!',
   dynamite: 'Dynamite!',
+  speedBoost: 'Speed Boost!',
+  invincible: 'Invincible!',
+  timePlus: 'Time +15!',
+  scoreBonus: 'Bonus +1000!',
 }
 
 const ITEM_TITLES: Record<ItemType, string> = {
@@ -144,6 +171,10 @@ const ITEM_TITLES: Record<ItemType, string> = {
   barrier: 'Barrier',
   oneUp: '1UP',
   dynamite: 'Dynamite',
+  speedBoost: 'Speed Boost',
+  invincible: 'Invincible',
+  timePlus: 'Time Plus',
+  scoreBonus: 'Score Bonus',
 }
 
 const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
@@ -155,6 +186,10 @@ const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
   barrier: '공과 충돌했을 때 피해를 한 번 막아줍니다.',
   oneUp: 'HP를 1 회복합니다.',
   dynamite: '모든 공을 즉시 가장 작은 크기로 분열시킵니다.',
+  speedBoost: '10초 동안 이동 속도가 60% 증가합니다.',
+  invincible: '8초 동안 공에 닿아도 피해를 받지 않습니다.',
+  timePlus: '남은 제한시간이 즉시 15초 증가합니다.',
+  scoreBonus: '누적 점수를 즉시 1,000점 추가합니다.',
 }
 
 type Particle = {
@@ -377,6 +412,8 @@ type BuffDisplay = {
   clock: number
   hourglass: number
   barrier: number
+  speedBoost: number
+  invincible: number
 }
 
 const NO_BUFFS: BuffDisplay = {
@@ -386,6 +423,8 @@ const NO_BUFFS: BuffDisplay = {
   clock: 0,
   hourglass: 0,
   barrier: 0,
+  speedBoost: 0,
+  invincible: 0,
 }
 
 function GamePlay({
@@ -434,6 +473,8 @@ function GamePlay({
   const vulcanUntilRef = useRef(0)
   const clockUntilRef = useRef(0)
   const hourglassUntilRef = useRef(0)
+  const speedBoostUntilRef = useRef(0)
+  const invincibleUntilRef = useRef(0)
   const barrierCountRef = useRef(0)
   const buffsDisplayRef = useRef<BuffDisplay>(NO_BUFFS)
   const aiKeysDisplayRef = useRef({ left: false, right: false, fire: false })
@@ -468,6 +509,8 @@ function GamePlay({
       vulcanUntilRef.current = 0
       clockUntilRef.current = 0
       hourglassUntilRef.current = 0
+      speedBoostUntilRef.current = 0
+      invincibleUntilRef.current = 0
       barrierCountRef.current = 0
       playerXRef.current = CANVAS_WIDTH / 2
       inputRef.current.releaseAll()
@@ -523,6 +566,8 @@ function GamePlay({
     vulcanUntilRef.current += pausedFor
     clockUntilRef.current += pausedFor
     hourglassUntilRef.current += pausedFor
+    speedBoostUntilRef.current += pausedFor
+    invincibleUntilRef.current += pausedFor
     lastHitAtRef.current += pausedFor
     harpoonsRef.current = harpoonsRef.current.map((harpoon) => ({
       ...harpoon,
@@ -663,6 +708,10 @@ function GamePlay({
             !isClockActive && time < hourglassUntilRef.current
           const isPowerWireActive = time < powerWireUntilRef.current
           const isVulcanActive = time < vulcanUntilRef.current
+          const isSpeedBoostActive = time < speedBoostUntilRef.current
+          const isInvincibleActive = time < invincibleUntilRef.current
+          const playerSpeed =
+            PLAYER_SPEED * (isSpeedBoostActive ? SPEED_BOOST_MULTIPLIER : 1)
           const maxHarpoons = isVulcanActive
             ? MAX_VULCAN_SHOTS
             : time < doubleWireUntilRef.current
@@ -740,8 +789,8 @@ function GamePlay({
 
           const keys = inputRef.current.snapshot()
           let vx = 0
-          if (keys.left) vx -= PLAYER_SPEED
-          if (keys.right) vx += PLAYER_SPEED
+          if (keys.left) vx -= playerSpeed
+          if (keys.right) vx += playerSpeed
           playerXRef.current = Math.min(
             Math.max(playerXRef.current + vx * dtSec, PLAYER_WIDTH / 2),
             CANVAS_WIDTH - PLAYER_WIDTH / 2,
@@ -749,7 +798,7 @@ function GamePlay({
 
           if (dragTargetXRef.current !== null) {
             const diff = dragTargetXRef.current - playerXRef.current
-            const maxStep = PLAYER_SPEED * dtSec
+            const maxStep = playerSpeed * dtSec
             playerXRef.current =
               Math.abs(diff) <= maxStep
                 ? dragTargetXRef.current
@@ -882,7 +931,12 @@ function GamePlay({
             harpoonsRef.current = remainingHarpoons
           }
 
-          if (!demo && !isClockActive && time >= invulnUntilRef.current) {
+          if (
+            !demo &&
+            !isClockActive &&
+            !isInvincibleActive &&
+            time >= invulnUntilRef.current
+          ) {
             const hit = ballsRef.current.some((b) =>
               ballHitsPlayer(b, playerXRef.current),
             )
@@ -978,6 +1032,26 @@ function GamePlay({
                 }
                 ballsRef.current = explodeToSmallest(ballsRef.current, nextId)
                 break
+              case 'speedBoost':
+                speedBoostUntilRef.current = time + SPEED_BOOST_DURATION_MS
+                break
+              case 'invincible':
+                invincibleUntilRef.current = time + INVINCIBLE_DURATION_MS
+                break
+              case 'timePlus':
+                timeRemainingRef.current += TIME_PLUS_SECONDS
+                lastDisplayedTimeRef.current = Math.ceil(
+                  timeRemainingRef.current,
+                )
+                setTimeRemaining(lastDisplayedTimeRef.current)
+                break
+              case 'scoreBonus':
+                scoreRef.current = addToTotalScore(
+                  scoreRef.current,
+                  SCORE_BONUS_POINTS,
+                )
+                setScore(scoreRef.current)
+                break
             }
           }
 
@@ -1001,6 +1075,14 @@ function GamePlay({
             0,
             Math.ceil((vulcanUntilRef.current - time) / 1000),
           )
+          const speedBoostSec = Math.max(
+            0,
+            Math.ceil((speedBoostUntilRef.current - time) / 1000),
+          )
+          const invincibleSec = Math.max(
+            0,
+            Math.ceil((invincibleUntilRef.current - time) / 1000),
+          )
           const barrierCount = barrierCountRef.current
           const prevBuffs = buffsDisplayRef.current
           if (
@@ -1009,6 +1091,8 @@ function GamePlay({
             prevBuffs.vulcan !== vulcanSec ||
             prevBuffs.clock !== clockSec ||
             prevBuffs.hourglass !== hourglassSec ||
+            prevBuffs.speedBoost !== speedBoostSec ||
+            prevBuffs.invincible !== invincibleSec ||
             prevBuffs.barrier !== barrierCount
           ) {
             const nextBuffs: BuffDisplay = {
@@ -1017,6 +1101,8 @@ function GamePlay({
               vulcan: vulcanSec,
               clock: clockSec,
               hourglass: hourglassSec,
+              speedBoost: speedBoostSec,
+              invincible: invincibleSec,
               barrier: barrierCount,
             }
             buffsDisplayRef.current = nextBuffs
@@ -1085,7 +1171,8 @@ function GamePlay({
         ctx.globalAlpha = 1
       }
 
-      const isInvuln = time < invulnUntilRef.current
+      const isInvuln =
+        time < invulnUntilRef.current || time < invincibleUntilRef.current
       const playerGradient = ctx.createLinearGradient(
         0,
         PLAYER_Y - PLAYER_HEIGHT / 2,
@@ -1372,6 +1459,8 @@ function GamePlay({
                 buffs.vulcan === 0 &&
                 buffs.clock === 0 &&
                 buffs.hourglass === 0 &&
+                buffs.speedBoost === 0 &&
+                buffs.invincible === 0 &&
                 buffs.barrier === 0 && <li>None</li>}
             </ul>
           </div>
