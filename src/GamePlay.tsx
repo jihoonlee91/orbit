@@ -216,24 +216,29 @@ type Popup = {
 
 function drawObstacle(ctx: CanvasRenderingContext2D, obstacle: Obstacle) {
   const { x, y, width, height } = obstacle
+
+  // A dark silhouette plus a cyan halo keeps terrain readable against every
+  // bright, dark, illustrated, or code-drawn stage background.
   ctx.save()
-  ctx.shadowColor = '#00000066'
-  ctx.shadowBlur = 6
-  ctx.shadowOffsetY = 3
+  ctx.shadowColor = '#22d3ee'
+  ctx.shadowBlur = 16
+  ctx.fillStyle = '#020617'
+  ctx.fillRect(x - 5, y - 5, width + 10, height + 10)
+  ctx.restore()
 
   const bodyGradient = ctx.createLinearGradient(0, y, 0, y + height)
-  bodyGradient.addColorStop(0, '#d4d4d8')
-  bodyGradient.addColorStop(1, '#71717a')
+  bodyGradient.addColorStop(0, '#1e293b')
+  bodyGradient.addColorStop(0.5, '#0f172a')
+  bodyGradient.addColorStop(1, '#020617')
   ctx.fillStyle = bodyGradient
   ctx.fillRect(x, y, width, height)
-  ctx.restore()
 
   ctx.save()
   ctx.beginPath()
   ctx.rect(x, y, width, height)
   ctx.clip()
-  ctx.fillStyle = '#facc15'
-  const stripeWidth = 14
+  ctx.fillStyle = '#fde047'
+  const stripeWidth = 16
   for (let sx = x - height; sx < x + width; sx += stripeWidth * 2) {
     ctx.beginPath()
     ctx.moveTo(sx, y + height)
@@ -245,9 +250,23 @@ function drawObstacle(ctx: CanvasRenderingContext2D, obstacle: Obstacle) {
   }
   ctx.restore()
 
-  ctx.strokeStyle = '#27272a'
+  ctx.strokeStyle = '#f8fafc'
   ctx.lineWidth = 2
   ctx.strokeRect(x, y, width, height)
+
+  ctx.strokeStyle = '#22d3ee'
+  ctx.lineWidth = 3
+  ctx.strokeRect(x - 3, y - 3, width + 6, height + 6)
+
+  for (const boltX of [x + 9, x + width - 9]) {
+    ctx.beginPath()
+    ctx.arc(boltX, y + height / 2, 3.5, 0, Math.PI * 2)
+    ctx.fillStyle = '#22d3ee'
+    ctx.fill()
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = 1.5
+    ctx.stroke()
+  }
 }
 
 function drawHarpoon(ctx: CanvasRenderingContext2D, harpoon: Harpoon) {
