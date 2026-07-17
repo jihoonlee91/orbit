@@ -74,12 +74,18 @@ function App() {
       unlockAudio()
       startBgm(0)
     }
+    const handleVisibility = () => {
+      if (document.hidden) stopBgm()
+      else startBgm(0)
+    }
     window.addEventListener('pointerdown', enableMenuAudio, { once: true })
     window.addEventListener('keydown', enableMenuAudio, { once: true })
+    document.addEventListener('visibilitychange', handleVisibility)
 
     return () => {
       window.removeEventListener('pointerdown', enableMenuAudio)
       window.removeEventListener('keydown', enableMenuAudio)
+      document.removeEventListener('visibilitychange', handleVisibility)
       stopBgm()
     }
   }, [screen])
