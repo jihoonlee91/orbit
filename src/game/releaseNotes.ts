@@ -9,6 +9,14 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.12.0',
+    date: '2026-07-17',
+    notes: [
+      'AI Play clears balls much faster now — it commits to shots instead of over-cautiously avoiding the very ball it just aimed at.',
+      'AI Play also plays smarter around items: no false predictions during Clock/Hourglass, and it plays fearless while Invincible is active.',
+    ],
+  },
+  {
     version: '1.11.0',
     date: '2026-07-17',
     notes: [
@@ -45,12 +53,5 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     version: '1.7.1',
     date: '2026-07-17',
     notes: ['Samsung Internet now gets its own install instructions.'],
-  },
-  {
-    version: '1.7.0',
-    date: '2026-07-17',
-    notes: [
-      'Item buff timers blink red once 3 seconds or less remain, so an effect running out is never a surprise.',
-    ],
   },
 ]

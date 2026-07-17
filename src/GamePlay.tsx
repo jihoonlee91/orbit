@@ -1650,6 +1650,16 @@ function GamePlay({
           }
 
           if (demo) {
+            // Match the ball forward-simulation to whatever's actually
+            // slowing/freezing balls in real gameplay right now, so a
+            // Clock or Hourglass pickup doesn't leave the AI's own
+            // predictions out of sync with reality.
+            const ballTimeScale = isClockActive
+              ? 0
+              : isHourglassActive
+                ? HOURGLASS_SLOW_FACTOR
+                : 1
+
             // Forward-simulate every ball with the real physics to find each
             // one's next low point (closest approach to the player's row) —
             // used both to pick a shooting target (soonest arrival) and to
@@ -1664,6 +1674,7 @@ function GamePlay({
                 terrain.platforms,
                 windAx,
                 activeGravityWell,
+                ballTimeScale,
               ),
             }))
             const targetPrediction = predictions.reduce<
@@ -1682,24 +1693,47 @@ function GamePlay({
                 ? itemTarget.x
                 : (targetPrediction?.x ?? playerXRef.current)
 
-            const dangerZones: DangerZone[] = predictions.map((p) => ({
-              x: p.x,
-              time: p.time,
-              radius:
-                LEVEL_RADIUS[p.ball.level] + PLAYER_WIDTH / 2 + AI_DODGE_BUFFER,
-            }))
+            // The ball we're about to shoot isn't a hazard to route around —
+            // it's the plan. Excluding it (while a harpoon slot is actually
+            // free to take the shot) is what lets the AI walk right up to
+            // and under an incoming ball to line up an early kill, instead
+            // of treating its own target as forbidden ground and stalling
+            // out at a distance short of ever actually firing. (A
+            // time-margin cutoff was tried here — bail on engaging once the
+            // target gets "too close" — but it backfires: as soon as it
+            // flips, the movement search flees the very position the AI was
+            // about to fire from, aborting shots that were one frame from
+            // landing. Once harpoons are full and no shot is available, the
+            // target goes back to being a real threat like anything else.)
+            const canEngageTarget = harpoonsRef.current.length < maxHarpoons
+            const dangerZones: DangerZone[] = predictions
+              .filter(
+                (p) => !(canEngageTarget && target && p.ball.id === target.id),
+              )
+              .map((p) => ({
+                x: p.x,
+                time: p.time,
+                radius:
+                  LEVEL_RADIUS[p.ball.level] +
+                  PLAYER_WIDTH / 2 +
+                  AI_DODGE_BUFFER,
+              }))
+            // While invincible, nothing is actually a threat — go straight
+            // for the goal instead of routing around ghosts.
             const moveTargetX =
               itemTarget !== null || target !== null
-                ? chooseSafeX(
-                    desiredX,
-                    playerXRef.current,
-                    dangerZones,
-                    {
-                      min: PLAYER_WIDTH / 2,
-                      max: CANVAS_WIDTH - PLAYER_WIDTH / 2,
-                    },
-                    { playerSpeed },
-                  )
+                ? isInvincibleActive
+                  ? desiredX
+                  : chooseSafeX(
+                      desiredX,
+                      playerXRef.current,
+                      dangerZones,
+                      {
+                        min: PLAYER_WIDTH / 2,
+                        max: CANVAS_WIDTH - PLAYER_WIDTH / 2,
+                      },
+                      { playerSpeed },
+                    )
                 : playerXRef.current
 
             const left = moveTargetX < playerXRef.current - AI_DEADZONE

@@ -343,6 +343,38 @@ describe('predictLandingSpot', () => {
     const { x } = predictLandingSpot(ball, 0.2)
     expect(x).toBeCloseTo(50, 0)
   })
+
+  it('treats a frozen ball (Clock active) as staying exactly where it is', () => {
+    const ball: Ball = { id: 1, x: 300, y: 100, vx: 150, vy: 0, level: 2 }
+    const { x, time } = predictLandingSpot(
+      ball,
+      1.5,
+      1 / 60,
+      undefined,
+      0,
+      undefined,
+      0, // ballTimeScale: frozen
+    )
+    expect(x).toBe(300)
+    expect(time).toBe(0)
+  })
+
+  it('still reports real elapsed time while the ball itself is slowed (Hourglass active)', () => {
+    const ball: Ball = { id: 1, x: 200, y: 100, vx: 100, vy: 0, level: 2 }
+    const full = predictLandingSpot(ball, 1.5)
+    const slowed = predictLandingSpot(
+      ball,
+      1.5,
+      1 / 60,
+      undefined,
+      0,
+      undefined,
+      0.4, // ballTimeScale: slowed
+    )
+    // The slowed ball drifts less far per real second, so it takes longer
+    // (more real seconds) to reach the same kind of low point.
+    expect(slowed.time).toBeGreaterThan(full.time)
+  })
 })
 
 describe('chooseSafeX', () => {
@@ -402,5 +434,12 @@ describe('chooseSafeX', () => {
     const x = chooseSafeX(400, 400, zones, bounds)
     expect(x).toBeGreaterThan(400)
     expect(x - 400).toBeLessThan(100)
+  })
+
+  it('lets the caller omit a zone entirely (e.g. the ball being actively engaged)', () => {
+    // GamePlay does this by simply not including the current shooting
+    // target's own predicted zone in the array it passes in.
+    const x = chooseSafeX(400, 400, [], bounds)
+    expect(x).toBe(400)
   })
 })

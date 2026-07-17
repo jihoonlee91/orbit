@@ -308,7 +308,14 @@ export function itemHitsPlayer(
  * real gameplay, to find its next "low point" — the x position it will be
  * at when it's closest to the player's row. Used by the AI/attract mode so
  * it can aim where a ball will be instead of reactively chasing where it
- * already is. Returns the predicted x and how many seconds away that is.
+ * already is. Returns the predicted x and how many seconds of real time
+ * away that is.
+ *
+ * `ballTimeScale` matches this to whatever's actually slowing/freezing the
+ * ball in real gameplay (Clock stops it entirely, Hourglass slows it) —
+ * only the physics integration is scaled, not the `t` bookkeeping, so
+ * `time` always means real seconds even while the ball itself is frozen
+ * or crawling.
  */
 export function predictLandingSpot(
   ball: Ball,
@@ -317,6 +324,7 @@ export function predictLandingSpot(
   obstacles?: Obstacle | readonly Obstacle[],
   windAx = 0,
   well?: GravityWell,
+  ballTimeScale = 1,
 ): { x: number; time: number } {
   let sim = ball
   let bestX = ball.x
@@ -325,7 +333,7 @@ export function predictLandingSpot(
   let t = 0
 
   while (t < horizonSec) {
-    sim = stepBall(sim, dtSec, obstacles, windAx, well)
+    sim = stepBall(sim, dtSec * ballTimeScale, obstacles, windAx, well)
     t += dtSec
     if (sim.y > bestY) {
       bestY = sim.y
@@ -362,6 +370,11 @@ export type DangerZone = {
  *    threat, search outward from the desired x for the nearest one; if
  *    nothing is fully clear (tight quarters), fall back to whichever
  *    position has the largest margin from its nearest threat.
+ *
+ * Which zones are passed in at all is the caller's call — e.g. GamePlay
+ * omits the ball currently being actively engaged (there's still enough
+ * time to safely land the shot) so the AI walks right up to line up an
+ * early kill instead of treating its own target as forbidden ground.
  */
 export function chooseSafeX(
   desiredX: number,
