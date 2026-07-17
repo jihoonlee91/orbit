@@ -129,6 +129,18 @@ function App() {
   }
 
   const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  // Samsung Internet is Chromium-based but does not reliably fire
+  // beforeinstallprompt, so it needs the same manual-instructions fallback
+  // as iOS Safari, just pointed at its own menu instead of the Share sheet.
+  const isSamsungInternet = /SamsungBrowser/i.test(navigator.userAgent)
+  const manualInstallHint =
+    installPromptEvent || isStandalone
+      ? null
+      : isIos
+        ? 'To install: tap Share, then "Add to Home Screen".'
+        : isSamsungInternet
+          ? 'To install: open the browser menu, then "Add page to" → "Home screen".'
+          : null
 
   const [updateAvailable, setUpdateAvailable] = useState(false)
 
@@ -500,9 +512,7 @@ function App() {
           setTutorialStep(0)
           setScreen('tutorial')
         }}
-        showIosInstallHint={
-          isIos && !isStandalone && installPromptEvent === null
-        }
+        manualInstallHint={manualInstallHint}
       />
     )
   }
