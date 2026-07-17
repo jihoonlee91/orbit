@@ -18,3 +18,9 @@
 - The dropped item's type is decided via a weighted draw (`ITEM_WEIGHTS`): double wire/clock/hourglass/barrier appear relatively often (20-22 each), while 1UP and dynamite appear rarely (9 each)
 - The Vulcan missile/power wire (weapon-swap types) are excluded from this scope
 - When an item is picked up, a short-lived popup announces which effect just triggered (e.g. "Double Wire!", "Barrier!") at the pickup location, using the same popup mechanism as score-gain text (`phase4_1.md`), so the effect is never a mystery to the player
+
+## Late-stage item: Stabilizer
+
+- Stages 31-50 (The Trench / Stellar Forge, see `phase5_1.md`/`phase5_2.md`) introduce their own hazard on top of gravity — a lateral current or a gravity well. Stabilizer briefly neutralizes whichever of the two is active for 8 seconds (`STABILIZER_DURATION_MS`), giving the player a clean breather from the extra push/pull without touching the base physics.
+- Only rolled into the item pool from stage 31 onward (`getItemWeights`) — it would do nothing in earlier stages, so it never appears there.
+- Weight 12 among that pool's items (same tier as clock/hourglass/barrier).
