@@ -77,6 +77,7 @@ Example: `feat: add power-up drops and effects`, `docs: design phase3-4 power-up
 If a body is needed, leave a blank line after the subject and add the description there. End the commit message with `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`.
 
 - Keep commits small and feature-sized (one logical change per commit), and push to `origin master` right after each one — don't batch unrelated changes into a single commit.
+- Bump `package.json`'s `version` (semver) with every meaningful commit: patch for fixes/small tweaks, minor for new features/content, major for breaking rewrites. The version is displayed in-game (main screen) and used for update detection, so it must move whenever shipped behavior changes.
 - `test`: adding or updating tests with no production code behavior change (in addition to the types above).
 
 ## Pull Request Convention

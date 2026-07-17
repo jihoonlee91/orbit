@@ -51,7 +51,9 @@
   min-width: 320px;
   max-width: 100%;
   max-height: calc(100dvh - 24px);
+  overflow-x: hidden;
   overflow-y: auto;
+  touch-action: pan-y;
   box-sizing: border-box;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.9);

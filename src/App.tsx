@@ -62,6 +62,23 @@ function App() {
   const [highestUnlockedStage, setHighestUnlockedStage] = useState(
     getHighestUnlockedStage,
   )
+  const [isFullscreen, setIsFullscreen] = useState(
+    () => document.fullscreenElement !== null,
+  )
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement !== null)
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () =>
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) void document.exitFullscreen()
+    else void document.documentElement.requestFullscreen()
+  }
 
   useEffect(() => {
     saveSettings(settings)
@@ -325,9 +342,9 @@ function App() {
             <button
               type="button"
               className="screen-button screen-button-secondary"
-              onClick={() => document.documentElement.requestFullscreen()}
+              onClick={toggleFullscreen}
             >
-              Fullscreen
+              {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             </button>
           )}
         </div>
