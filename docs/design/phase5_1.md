@@ -1,21 +1,26 @@
-# Phase 5-1. The Trench (Stages 31-40)
+# Phase 5-1. The Trench (Stages 41-50)
 
 > This is a draft. Details will be finalized after discussion.
+>
+> Renumbered from the original 31-40 when `phase5_4.md`'s World Tour II
+> (stages 21-30) was inserted ahead of it, pushing Dimension X to 31-40
+> and this block to 41-50. The mechanic and backgrounds below are
+> unchanged, only the stage numbers shifted.
 
 ## Goal
 
 - Extend the game from 30 to 40 stages with a new environmental hazard,
-  distinct from the ladder (stages 6-10) and portal (stages 21-30)
+  distinct from the ladder (stages 6-10) and portal (stages 31-40)
   mechanics already in place.
 
 ## Theme
 
-- After breaching the Dimension X "Pang Core" at stage 30, the player
-  falls through into an abyssal ocean — a bioluminescent deep-sea
-  trench. Ten backdrops (trench walls, drifting jellyfish, shipwreck
-  silhouettes, coral spires) are drawn procedurally in the same flat
-  Canvas 2D style as the existing dimension backgrounds, varying by a
-  per-stage index the same way `drawDimensionBackground` does.
+- After breaching the Dimension X "Pang Core", the player falls through
+  into an abyssal ocean — a bioluminescent deep-sea trench. Ten
+  backdrops (trench walls, drifting jellyfish, shipwreck silhouettes,
+  coral spires) are drawn procedurally in the same flat Canvas 2D style
+  as the existing dimension backgrounds, varying by a per-stage index
+  the same way `drawDimensionBackground` does.
 
 ## New mechanic: Current
 

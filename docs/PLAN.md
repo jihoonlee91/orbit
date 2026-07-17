@@ -101,21 +101,36 @@ A file laying out the goals for each phase.
 
 ## Phase 5. World Expansion II
 
-### Phase 5-1. The Trench (Stages 31-40)
+### Phase 5-1. The Trench (Stages 41-50)
 
 - Add 10 more stages themed as a deep-sea trench, with a new periodic
   "current" hazard that pushes balls laterally
 
-### Phase 5-2. Stellar Forge (Stages 41-50)
+### Phase 5-2. Stellar Forge (Stages 51-60)
 
 - Add 10 more stages themed as deep space, with a new "gravity well"
   hazard that pulls balls toward a fixed point
 
-### Phase 5-3. Cosmic Frontier (Stages 51-60)
+### Phase 5-3. Cosmic Frontier (Stages 61-70)
 
-- Add the final 10 stages, escalating outward in scale — solar system,
-  then galaxy, then deep space — ending on a distinct Hellfire finale
-  stage. Pure content/theme expansion, no new hazard mechanic
+- Add 10 more stages, escalating outward in scale — solar system, then
+  galaxy, then deep space — ending on a distinct Hellfire finale stage.
+  Pure content/theme expansion, no new hazard mechanic
+
+### Phase 5-4. World Tour II (Stages 21-30)
+
+- Insert 10 more real-landmark stages between the original World Tour
+  (1-20) and Dimension X, pushing every later block (Dimension X, The
+  Trench, Stellar Forge, Cosmic Frontier) down by 10 stages. Pure
+  content expansion with bespoke hand-drawn backgrounds, no new hazard
+  mechanic
+
+### Phase 5-5. Vortex Frontier (Stages 71-80)
+
+- Add the final 10 stages with a new "vortex" hazard — a spinning
+  gravity well that curves balls into an orbit instead of a straight
+  pull — plus 10 visually distinct space compositions rather than one
+  recolored template
 
 ## Phase 6. Live Ops & Post-Launch Polish
 
