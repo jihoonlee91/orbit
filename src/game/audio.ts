@@ -75,6 +75,17 @@ export function playClearSound() {
   })
 }
 
+// A longer, brighter fanfare for milestone (every-10-stage) and full-game
+// clears, distinct from the brief per-stage playClearSound jingle.
+export function playVictoryFanfare() {
+  ;[523, 659, 784, 1047, 1319, 1047, 1319, 1568].forEach((freq, i) => {
+    playTone(freq, 0.28, 'triangle', 0.08, i * 0.11)
+  })
+  ;[261, 329, 392].forEach((freq, i) => {
+    playTone(freq, 0.9, 'sine', 0.05, i * 0.11)
+  })
+}
+
 export function playGameOverSound() {
   ;[392, 330, 262, 196].forEach((freq, i) => {
     playTone(freq, 0.3, 'sawtooth', 0.07, i * 0.15)

@@ -8,7 +8,13 @@ import { getPlayerName, recordScore, renameEntry } from './game/scoreHistory'
 import type { ScoreEntry } from './game/scoreHistory'
 import SettingsDialog from './components/SettingsDialog'
 import { loadSettings, saveSettings, type GameSettings } from './game/settings'
-import { configureAudio, startBgm, stopBgm, unlockAudio } from './game/audio'
+import {
+  configureAudio,
+  playVictoryFanfare,
+  startBgm,
+  stopBgm,
+  unlockAudio,
+} from './game/audio'
 import { getHighestUnlockedStage, unlockStage } from './game/progress'
 
 type Screen =
@@ -17,10 +23,13 @@ type Screen =
   | 'countdown'
   | 'play'
   | 'stageClear'
+  | 'milestone'
   | 'demo'
   | 'map'
   | 'settings'
   | 'end'
+
+const MILESTONE_INTERVAL = 10
 
 const COUNTDOWN_START = 3
 const STAGE_ADVANCE_COUNTDOWN = 5
@@ -49,6 +58,7 @@ function App() {
   const [stageAdvanceCountdown, setStageAdvanceCountdown] = useState(
     STAGE_ADVANCE_COUNTDOWN,
   )
+  const [milestoneStage, setMilestoneStage] = useState(0)
   const [highestUnlockedStage, setHighestUnlockedStage] = useState(
     getHighestUnlockedStage,
   )
@@ -161,6 +171,7 @@ function App() {
   const finish = (outcome: StageResult, score: number) => {
     setFinalScore(score)
     setResult(outcome)
+    if (outcome === 'clear') playVictoryFanfare()
 
     const {
       history,
@@ -181,16 +192,28 @@ function App() {
   }
 
   const handleClear = (score: number) => {
-    if (stageIndex + 1 < STAGE_COUNT) {
-      const nextStage = stageIndex + 1
+    const clearedStage = stageIndex + 1
+    if (clearedStage < STAGE_COUNT) {
+      const nextStage = clearedStage
       setHighestUnlockedStage(unlockStage(nextStage))
       setFinalScore(score)
       setStageIndex(nextStage)
-      setStageAdvanceCountdown(STAGE_ADVANCE_COUNTDOWN)
-      setScreen('stageClear')
+      if (clearedStage % MILESTONE_INTERVAL === 0) {
+        setMilestoneStage(clearedStage)
+        playVictoryFanfare()
+        setScreen('milestone')
+      } else {
+        setStageAdvanceCountdown(STAGE_ADVANCE_COUNTDOWN)
+        setScreen('stageClear')
+      }
     } else {
       finish('clear', score)
     }
+  }
+
+  const continueFromMilestone = () => {
+    setStageAdvanceCountdown(STAGE_ADVANCE_COUNTDOWN)
+    setScreen('stageClear')
   }
 
   const handleGameOver = (score: number) => {
@@ -234,6 +257,9 @@ function App() {
           break
         case 'stageClear':
           continueToNextStage()
+          break
+        case 'milestone':
+          continueFromMilestone()
           break
         case 'end':
           beginCountdown()
@@ -400,6 +426,30 @@ function App() {
     )
   }
 
+  if (screen === 'milestone') {
+    return (
+      <div className="screen milestone-screen">
+        <p className="milestone-seal" aria-hidden="true">
+          ★
+        </p>
+        <p className="main-kicker">Certificate of Achievement</p>
+        <h1>Stage {milestoneStage} Clear!</h1>
+        <p className="milestone-tagline">
+          {milestoneStage} stages down, {STAGE_COUNT - milestoneStage} to go.
+        </p>
+        <p className="result-score">Score {finalScore}</p>
+        <button
+          type="button"
+          className="screen-button"
+          onClick={continueFromMilestone}
+        >
+          Continue
+        </button>
+        <p className="space-hint">▼ Press Space to Continue ▼</p>
+      </div>
+    )
+  }
+
   if (screen === 'demo') {
     return (
       <div className="gameplay">
@@ -423,7 +473,17 @@ function App() {
   }
 
   return (
-    <div className="screen result-screen">
+    <div
+      className={`screen result-screen ${result === 'clear' ? 'result-screen-clear' : ''}`}
+    >
+      {result === 'clear' && (
+        <p className="milestone-seal" aria-hidden="true">
+          ★
+        </p>
+      )}
+      <p className="main-kicker">
+        {result === 'clear' ? 'Certificate of Completion' : 'Game Over'}
+      </p>
       <h1>{result === 'clear' ? 'Game Clear' : 'Game Over'}</h1>
       <p className="result-score">Score {finalScore}</p>
       <p className="result-high-score">All-time #{rank}</p>

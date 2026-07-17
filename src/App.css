@@ -1591,8 +1591,25 @@
 
 .settings-screen,
 .tutorial-screen,
-.result-screen {
+.result-screen,
+.milestone-screen {
   width: min(560px, 100%);
+}
+
+.milestone-seal {
+  margin: 0 0 -10px;
+  color: #fef08a;
+  font-size: 56px;
+  line-height: 1;
+  text-shadow: 0 0 22px rgba(254, 240, 138, 0.75);
+}
+
+.milestone-tagline {
+  color: #bae6fd;
+}
+
+.result-screen-clear .result-detail {
+  color: #bae6fd;
 }
 
 .setting-row,
@@ -2185,6 +2202,30 @@
 #root .result-score {
   color: var(--retro-yellow) !important;
   text-shadow: 3px 3px 0 var(--retro-red);
+}
+
+#root .milestone-screen,
+#root .result-screen-clear {
+  border-style: double;
+  border-width: 6px;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 201, 40, 0.05) 0 10px,
+      transparent 10px 20px
+    ),
+    linear-gradient(145deg, #32185b, #15143d 62%, #0d1c3c);
+}
+
+#root .milestone-seal {
+  color: var(--retro-yellow);
+  text-shadow:
+    0 0 12px rgba(255, 201, 40, 0.75),
+    2px 2px 0 var(--retro-red);
+}
+
+#root .milestone-tagline {
+  color: var(--retro-cyan) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
