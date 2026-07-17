@@ -100,12 +100,18 @@ function App() {
     }
   }, [screen])
 
-  const beginCountdown = () => {
+  const beginCountdown = (stage = 0) => {
     unlockAudio()
-    setStageIndex(0)
+    setStageIndex(stage)
     setFinalScore(0)
     setCountdown(COUNTDOWN_START)
     setScreen('countdown')
+  }
+
+  // Retry resumes on the stage the player died on; a full clear restarts
+  // from stage 1 since there is no "died on" stage to resume.
+  const handleRetry = () => {
+    beginCountdown(result === 'gameover' ? stageIndex : 0)
   }
 
   const startGame = () => {
@@ -262,7 +268,7 @@ function App() {
           continueFromMilestone()
           break
         case 'end':
-          beginCountdown()
+          handleRetry()
           break
         default:
           handled = false
@@ -522,7 +528,7 @@ function App() {
           ))}
         </ol>
       )}
-      <button type="button" className="screen-button" onClick={beginCountdown}>
+      <button type="button" className="screen-button" onClick={handleRetry}>
         Retry
       </button>
       <button
