@@ -21,6 +21,7 @@ import {
   ITEM_WEIGHTS,
   type Obstacle,
 } from './constants'
+import { applyGravityWellPull, type GravityWell } from './gravityWells'
 import type { Ball, Item, ItemType } from './types'
 
 const EARLY_STAGE_BALLS: readonly (readonly Omit<Ball, 'id'>[])[] = [
@@ -91,12 +92,23 @@ export function stepBall(
     width: OBSTACLE_WIDTH,
     height: OBSTACLE_HEIGHT,
   },
+  // Lateral push from a stage current (trench stages) and/or a pull toward a
+  // fixed gravity well (stellar-forge stages) — both optional, additive on
+  // top of normal gravity/bounce physics.
+  windAx = 0,
+  well?: GravityWell,
 ): Ball {
   const r = LEVEL_RADIUS[ball.level]
   const verticalBounceSpeed = LEVEL_BOUNCE_SPEED[ball.level]
   let { x, y, vx, vy } = ball
 
   vy += GRAVITY * dtSec
+  vx += windAx * dtSec
+  if (well) {
+    const { ax, ay } = applyGravityWellPull(well, x, y)
+    vx += ax * dtSec
+    vy += ay * dtSec
+  }
   x += vx * dtSec
   y += vy * dtSec
 
@@ -302,6 +314,8 @@ export function predictLandingSpot(
   horizonSec = 1.5,
   dtSec = 1 / 60,
   obstacles?: Obstacle | readonly Obstacle[],
+  windAx = 0,
+  well?: GravityWell,
 ): { x: number; time: number } {
   let sim = ball
   let bestX = ball.x
@@ -310,7 +324,7 @@ export function predictLandingSpot(
   let t = 0
 
   while (t < horizonSec) {
-    sim = stepBall(sim, dtSec, obstacles)
+    sim = stepBall(sim, dtSec, obstacles, windAx, well)
     t += dtSec
     if (sim.y > bestY) {
       bestY = sim.y

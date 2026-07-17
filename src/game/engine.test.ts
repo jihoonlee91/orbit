@@ -81,7 +81,10 @@ describe('createStage', () => {
       expect(getStageTimeSeconds(stage)).toBeLessThan(
         getStageTimeSeconds(stage - 1),
       )
-      expect(getStageItemDropChance(stage)).toBeLessThan(
+      // Item drop chance decreases stage over stage until it hits its
+      // intentional floor (see ITEM_DROP_CHANCE's Math.max in constants.ts),
+      // where it levels off rather than continuing to shrink.
+      expect(getStageItemDropChance(stage)).toBeLessThanOrEqual(
         getStageItemDropChance(stage - 1),
       )
     }
@@ -204,6 +207,21 @@ describe('stepBall', () => {
     const afterRight = stepBall(rightBall, 0.016)
     expect(afterRight.x).toBeLessThanOrEqual(CANVAS_WIDTH - r)
     expect(afterRight.vx).toBeLessThan(0)
+  })
+
+  it('applies a lateral current as extra horizontal acceleration', () => {
+    const stillBall: Ball = { id: 1, x: 400, y: 200, vx: 0, vy: 0, level: 2 }
+    const withoutWind = stepBall(stillBall, 0.1)
+    const withWind = stepBall(stillBall, 0.1, undefined, 200)
+    expect(withWind.vx).toBeCloseTo(withoutWind.vx + 200 * 0.1)
+  })
+
+  it('pulls a ball toward a gravity well', () => {
+    const ball: Ball = { id: 1, x: 400, y: 200, vx: 0, vy: 0, level: 2 }
+    const well = { x: 500, y: 200, strength: 4_000_000 }
+    const next = stepBall(ball, 0.05, undefined, 0, well)
+    expect(next.vx).toBeGreaterThan(0)
+    expect(next.x).toBeGreaterThan(ball.x)
   })
 })
 
