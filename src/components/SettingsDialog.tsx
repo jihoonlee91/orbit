@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { GameSettings } from '../game/settings'
+import { clearAppCache } from '../game/updateCheck'
 
 type Props = {
   settings: GameSettings
@@ -17,6 +19,14 @@ export default function SettingsDialog({
     key: K,
     value: GameSettings[K],
   ) => onChange({ ...settings, [key]: value })
+
+  const [clearingCache, setClearingCache] = useState(false)
+
+  const handleClearCache = async () => {
+    setClearingCache(true)
+    await clearAppCache()
+    window.location.reload()
+  }
 
   return (
     <div
@@ -97,6 +107,18 @@ export default function SettingsDialog({
       >
         Replay Tutorial
       </button>
+      <button
+        type="button"
+        className="screen-button screen-button-secondary"
+        disabled={clearingCache}
+        onClick={() => void handleClearCache()}
+      >
+        {clearingCache ? 'Clearing Cache…' : 'Clear Cache'}
+      </button>
+      <p className="setting-hint">
+        This device caches the game for offline play. Clear it if you're stuck
+        on an old version.
+      </p>
       <p className="disclaimer">
         This is an independent game and is not affiliated with or endorsed by
         the owners of Pang or Buster Bros.

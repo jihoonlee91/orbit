@@ -16,6 +16,7 @@ import {
   unlockAudio,
 } from './game/audio'
 import { getHighestUnlockedStage, unlockStage } from './game/progress'
+import { isUpdateAvailable } from './game/updateCheck'
 
 type Screen =
   | 'main'
@@ -79,6 +80,37 @@ function App() {
     if (document.fullscreenElement) void document.exitFullscreen()
     else void document.documentElement.requestFullscreen()
   }
+
+  const [updateAvailable, setUpdateAvailable] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    const check = () => {
+      void isUpdateAvailable().then((available) => {
+        if (!cancelled && available) setUpdateAvailable(true)
+      })
+    }
+    check()
+    const interval = window.setInterval(check, 5 * 60 * 1000)
+    const handleVisibility = () => {
+      if (!document.hidden) check()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [])
+
+  // Apply an available update the moment the player is back at the main
+  // menu (never mid-run, so progress is never interrupted) — a fresh
+  // reload picks up the latest network-first-fetched bundle.
+  useEffect(() => {
+    if (!updateAvailable || screen !== 'main') return
+    const timer = window.setTimeout(() => window.location.reload(), 900)
+    return () => window.clearTimeout(timer)
+  }, [updateAvailable, screen])
 
   useEffect(() => {
     saveSettings(settings)
@@ -300,6 +332,9 @@ function App() {
     return (
       <div className="screen main-screen">
         <p className="app-version">v{__APP_VERSION__}</p>
+        {updateAvailable && (
+          <p className="update-toast">Updating to the latest version…</p>
+        )}
         <div className="main-orbit" aria-hidden="true">
           <span />
           <span />

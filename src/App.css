@@ -139,6 +139,14 @@
   opacity: 0.8;
 }
 
+.setting-hint {
+  max-width: 46ch;
+  margin-top: -8px !important;
+  font-size: 11px !important;
+  line-height: 1.5;
+  color: #94a3b8 !important;
+}
+
 .name-field {
   display: flex;
   align-items: center;
@@ -1995,6 +2003,21 @@
   color: rgba(255, 241, 184, 0.45) !important;
   font: 8px var(--font-game) !important;
   letter-spacing: 1px;
+}
+
+.update-toast {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 5;
+  padding: 6px 14px;
+  border: 1px solid rgba(125, 211, 252, 0.5);
+  border-radius: 999px;
+  color: #7dd3fc !important;
+  background: rgba(9, 9, 31, 0.85);
+  font: 10px var(--font-game) !important;
+  letter-spacing: 0.5px;
+  transform: translateX(-50%);
 }
 
 #root .main-screen h1 {
