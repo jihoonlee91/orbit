@@ -626,6 +626,15 @@
   letter-spacing: 8px;
 }
 
+.tutorial-actions,
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+}
+
 .reduced-motion *,
 .reduced-motion *::before,
 .reduced-motion *::after {
@@ -1644,7 +1653,8 @@
    the card scrolls. */
 @media (orientation: landscape) and (max-height: 500px) {
   .result-screen,
-  .milestone-screen {
+  .milestone-screen,
+  .tutorial-screen {
     padding: 16px 20px;
     gap: 8px;
   }
@@ -1660,7 +1670,16 @@
     font-size: 10px;
   }
 
-  .result-actions {
+  .tutorial-controls {
+    min-width: 0;
+    padding: 10px 20px;
+    font-size: var(--fs-lg);
+    letter-spacing: 5px;
+  }
+
+  .result-actions,
+  .tutorial-actions,
+  .settings-actions {
     position: sticky;
     bottom: -16px;
     flex-direction: row;
@@ -1671,9 +1690,16 @@
     border-top: 1px solid rgba(255, 255, 255, 0.15);
   }
 
-  .result-actions .screen-button {
+  .result-actions .screen-button,
+  .tutorial-actions .screen-button,
+  .settings-actions .screen-button {
     flex: 1;
     padding: 10px 12px;
+  }
+
+  .settings-screen {
+    padding: 16px 20px;
+    gap: 10px;
   }
 }
 

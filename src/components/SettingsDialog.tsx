@@ -97,16 +97,18 @@ export default function SettingsDialog({
           {label}
         </label>
       ))}
-      <button type="button" className="screen-button" onClick={onClose}>
-        Done
-      </button>
-      <button
-        type="button"
-        className="screen-button screen-button-secondary"
-        onClick={onReplayTutorial}
-      >
-        Replay Tutorial
-      </button>
+      <div className="settings-actions">
+        <button type="button" className="screen-button" onClick={onClose}>
+          Done
+        </button>
+        <button
+          type="button"
+          className="screen-button screen-button-secondary"
+          onClick={onReplayTutorial}
+        >
+          Replay Tutorial
+        </button>
+      </div>
       <button
         type="button"
         className="screen-button screen-button-secondary"

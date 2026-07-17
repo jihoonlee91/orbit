@@ -474,20 +474,22 @@ function App() {
               ? 'FIRE'
               : '●  →  • •'}
         </div>
-        <button
-          type="button"
-          className="screen-button"
-          onClick={advanceTutorial}
-        >
-          {isLastStep ? 'Start Game' : 'Next'}
-        </button>
-        <button
-          type="button"
-          className="screen-button screen-button-secondary"
-          onClick={() => setScreen('main')}
-        >
-          Back
-        </button>
+        <div className="tutorial-actions">
+          <button
+            type="button"
+            className="screen-button"
+            onClick={advanceTutorial}
+          >
+            {isLastStep ? 'Start Game' : 'Next'}
+          </button>
+          <button
+            type="button"
+            className="screen-button screen-button-secondary"
+            onClick={() => setScreen('main')}
+          >
+            Back
+          </button>
+        </div>
       </div>
     )
   }
