@@ -498,7 +498,7 @@ function App() {
           ? 'Fully Cleared'
           : `Ended at stage ${stageIndex + 1}`}
       </p>
-      <p className="result-detail">
+      <p className="result-detail result-date">
         {new Date().toLocaleString('en-US', {
           year: 'numeric',
           month: '2-digit',
@@ -528,16 +528,18 @@ function App() {
           ))}
         </ol>
       )}
-      <button type="button" className="screen-button" onClick={handleRetry}>
-        Retry
-      </button>
-      <button
-        type="button"
-        className="screen-button screen-button-secondary"
-        onClick={() => setScreen('main')}
-      >
-        Back to Main
-      </button>
+      <div className="result-actions">
+        <button type="button" className="screen-button" onClick={handleRetry}>
+          Retry
+        </button>
+        <button
+          type="button"
+          className="screen-button screen-button-secondary"
+          onClick={() => setScreen('main')}
+        >
+          Back to Main
+        </button>
+      </div>
     </div>
   )
 }
