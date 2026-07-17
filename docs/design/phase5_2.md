@@ -4,9 +4,10 @@
 
 ## Goal
 
-- Extend the game from 40 to 50 (final) stages with a second new
-  hazard, escalating past the trench's current into full gravitational
-  chaos for the finale.
+- Extend the game from 40 to 50 stages with a second new hazard,
+  escalating past the trench's current into full gravitational chaos
+  (later followed by `phase5_3.md`'s Cosmic Frontier, so this is no
+  longer the finale, just the next rung up).
 
 ## Theme
 
@@ -25,7 +26,6 @@
   well instead of falling straight down.
 - Like currents, the well only affects balls (not the harpoon/player),
   keeping player control precise while balls behave more chaotically.
-- Stage 50 is the true final stage — clearing it is the full game clear.
 
 ## Files
 

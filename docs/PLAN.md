@@ -108,8 +108,14 @@ A file laying out the goals for each phase.
 
 ### Phase 5-2. Stellar Forge (Stages 41-50)
 
-- Add the final 10 stages themed as deep space, with a new "gravity
-  well" hazard that pulls balls toward a fixed point
+- Add 10 more stages themed as deep space, with a new "gravity well"
+  hazard that pulls balls toward a fixed point
+
+### Phase 5-3. Cosmic Frontier (Stages 51-60)
+
+- Add the final 10 stages, escalating outward in scale — solar system,
+  then galaxy, then deep space — ending on a distinct Hellfire finale
+  stage. Pure content/theme expansion, no new hazard mechanic
 
 ## Phase 6. Live Ops & Post-Launch Polish
 
