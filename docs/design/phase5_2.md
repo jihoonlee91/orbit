@@ -1,13 +1,18 @@
-# Phase 5-2. Stellar Forge (Stages 41-50)
+# Phase 5-2. Stellar Forge (Stages 51-60)
 
 > This is a draft. Details will be finalized after discussion.
+>
+> Renumbered from the original 41-50 when `phase5_4.md`'s World Tour II
+> insertion pushed every later block down by 10 stages. The mechanic and
+> backgrounds below are unchanged, only the stage numbers shifted.
 
 ## Goal
 
 - Extend the game from 40 to 50 stages with a second new hazard,
   escalating past the trench's current into full gravitational chaos
-  (later followed by `phase5_3.md`'s Cosmic Frontier, so this is no
-  longer the finale, just the next rung up).
+  (later followed by `phase5_3.md`'s Cosmic Frontier and `phase5_5.md`'s
+  Vortex Frontier, so this is no longer the finale, just the next rung
+  up).
 
 ## Theme
 

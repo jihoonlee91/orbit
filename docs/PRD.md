@@ -8,7 +8,7 @@
 ## 2. Core Gameplay
 
 - The player fires a harpoon to hit the balls on screen, splitting them and eventually removing them.
-- Removing all the balls clears the stage and progresses to the next one, across 60 stages total, escalating through several distinct environmental hazards (ladders, dimension portals, undersea currents, gravity wells) before a final content arc — solar system, galaxy, deep space, and a Hellfire finale.
+- Removing all the balls clears the stage and progresses to the next one, across 80 stages total, escalating through several distinct environmental hazards (ladders, a second world-tour arc, dimension portals, undersea currents, gravity wells) through a content arc — solar system, galaxy, deep space, and a Hellfire finale — before a final spinning "vortex" gravity-well arc.
 - Getting hit by a ball doesn't cause instant death — it reduces HP by a set amount, and game over occurs when HP reaches 0.
 - Power-ups occasionally drop from hit balls, applying a temporary effect (double wire, clock, hourglass, barrier, 1UP, or the risky dynamite).
 
