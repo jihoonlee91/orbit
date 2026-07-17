@@ -282,6 +282,7 @@ function App() {
   if (screen === 'main') {
     return (
       <div className="screen main-screen">
+        <p className="app-version">v{__APP_VERSION__}</p>
         <div className="main-orbit" aria-hidden="true">
           <span />
           <span />

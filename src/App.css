@@ -1977,6 +1977,16 @@
   letter-spacing: 1px;
 }
 
+.app-version {
+  position: absolute;
+  bottom: 10px;
+  left: 16px;
+  margin: 0 !important;
+  color: rgba(255, 241, 184, 0.45) !important;
+  font: 8px var(--font-game) !important;
+  letter-spacing: 1px;
+}
+
 #root .main-screen h1 {
   color: transparent;
   background: linear-gradient(
