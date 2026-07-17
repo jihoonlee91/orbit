@@ -1424,6 +1424,25 @@
   box-shadow: 0 0 10px rgba(251, 113, 133, 0.45);
 }
 
+@keyframes hp-bar-pulse {
+  0% {
+    transform: scale(1);
+    filter: none;
+  }
+  30% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9));
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+.hp-bar-pulse {
+  animation: hp-bar-pulse 320ms ease-out;
+}
+
 .hud-button {
   border: 1px solid rgba(125, 211, 252, 0.25);
   color: #bae6fd;

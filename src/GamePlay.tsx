@@ -1085,6 +1085,7 @@ type Props = {
 
 const AI_DEADZONE = 10
 const AI_FIRE_TOLERANCE = 18
+const HIT_EFFECT_MS = 350
 
 type BuffDisplay = {
   doubleWire: number
@@ -1136,6 +1137,7 @@ function GamePlay({
   const itemsRef = useRef<Item[]>([])
   const hpRef = useRef(MAX_HP)
   const invulnUntilRef = useRef(0)
+  const hitEffectUntilRef = useRef(0)
   const comboRef = useRef(0)
   const lastHitAtRef = useRef(0)
   const scoreRef = useRef(initialScore)
@@ -1174,6 +1176,8 @@ function GamePlay({
   const aiKeysDisplayRef = useRef({ left: false, right: false, fire: false })
 
   const [hp, setHp] = useState(MAX_HP)
+  const [hpPulseKey, setHpPulseKey] = useState(0)
+  const prevHpRef = useRef(MAX_HP)
   const [score, setScore] = useState(initialScore)
   const [timeRemaining, setTimeRemaining] = useState(stageTimeSeconds)
   const [itemNotice, setItemNotice] = useState<ItemType | null>(null)
@@ -1240,6 +1244,11 @@ function GamePlay({
     resetStageState(false)
     setPaused(false)
   }, [resetStageState])
+
+  useEffect(() => {
+    if (hp < prevHpRef.current) setHpPulseKey((key) => key + 1)
+    prevHpRef.current = hp
+  }, [hp])
 
   useEffect(
     () => () => {
@@ -1738,6 +1747,7 @@ function GamePlay({
               } else {
                 hpRef.current -= 1
                 setHp(hpRef.current)
+                hitEffectUntilRef.current = time + HIT_EFFECT_MS
                 playPlayerHitSound()
                 if (settings.vibration) navigator.vibrate?.(90)
                 if (hpRef.current <= 0) {
@@ -1948,6 +1958,20 @@ function GamePlay({
       const dpr = dprRef.current
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+
+      const hitEffectProgress = Math.max(
+        0,
+        Math.min(1, (hitEffectUntilRef.current - time) / HIT_EFFECT_MS),
+      )
+      ctx.save()
+      if (hitEffectProgress > 0 && settings.screenShake) {
+        const magnitude = 6 * hitEffectProgress
+        ctx.translate(
+          (Math.random() - 0.5) * 2 * magnitude,
+          (Math.random() - 0.5) * 2 * magnitude,
+        )
+      }
+
       drawBackground(ctx, stageIndex)
       if (stageCurrent) {
         drawCurrentFlow(ctx, getCurrentWindAx(stageCurrent, time), time)
@@ -2070,6 +2094,16 @@ function GamePlay({
         ctx.globalAlpha = 1
       }
 
+      ctx.restore()
+
+      if (hitEffectProgress > 0) {
+        ctx.save()
+        ctx.globalAlpha = 0.35 * hitEffectProgress
+        ctx.fillStyle = '#ef4444'
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+        ctx.restore()
+      }
+
       drawBrickFrame(ctx)
 
       if (settings.showFps && time - fpsUpdatedAt > 500) {
@@ -2096,6 +2130,7 @@ function GamePlay({
     isStarting,
     settings.showFps,
     settings.vibration,
+    settings.screenShake,
   ])
 
   const handleTouchChange = (
@@ -2116,7 +2151,11 @@ function GamePlay({
         )}
         {stageCurrent && <span className="hud-hazard">Current</span>}
         {gravityWell && <span className="hud-hazard">Gravity Well</span>}
-        <div className="hp-bar" aria-label={`HP ${hp} of ${MAX_HP}`}>
+        <div
+          className="hp-bar hp-bar-pulse"
+          key={hpPulseKey}
+          aria-label={`HP ${hp} of ${MAX_HP}`}
+        >
           {Array.from({ length: MAX_HP }, (_, i) => (
             <span
               key={i}
