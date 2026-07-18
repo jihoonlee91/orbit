@@ -21,6 +21,13 @@
 
 ## Late-stage item: Stabilizer
 
-- Stages 41-60 (The Trench / Stellar Forge, see `phase5_1.md`/`phase5_2.md`) and stages 71-80 (Vortex Frontier, see `phase5_5.md`) introduce their own hazard on top of gravity — a lateral current, a gravity well, or a spinning vortex well. Stabilizer briefly neutralizes whichever is active for 8 seconds (`STABILIZER_DURATION_MS`), giving the player a clean breather from the extra push/pull without touching the base physics.
-- Only rolled into the item pool from stage 31 onward (`getItemWeights`) — it would do nothing in earlier stages, so it never appears there.
+- Stages 41-70 (The Trench / Stellar Forge / Cosmic Frontier, see `phase5_1.md`/`phase5_2.md`/`phase5_6.md`) and stages 71-80 (Vortex Frontier, see `phase5_5.md`) introduce their own hazard on top of gravity — a lateral current, a gravity well, a nebula field (two weaker wells), or a spinning vortex well. Stabilizer briefly neutralizes whichever is active for 8 seconds (`STABILIZER_DURATION_MS`), giving the player a clean breather from the extra push/pull without touching the base physics.
+- Only rolled into the item pool from stage 41 onward (`getItemWeights`, `STABILIZER_START_STAGE`) — it would do nothing in earlier stages, so it never appears there.
 - Weight 12 among that pool's items (same tier as clock/hourglass/barrier).
+- Does not neutralize the Hell (`phase5_7.md`) fire zones or Void (`phase5_8.md`) low gravity — those aren't a push-toward-a-point hazard to cancel, they're a direct damage mechanic and a baseline physics change respectively.
+
+## Cosmic Frontier item: Nova Surge
+
+- Rolled into the item pool from stage 61 onward (`NOVA_SURGE_START_STAGE`), staying in the pool for every later stage, same pattern as Stabilizer.
+- Doubles the score gained from hitting balls for 10 seconds (`NOVA_SURGE_DURATION_MS`, `NOVA_SURGE_MULTIPLIER`) — does not affect scoreBonus/timePlus or other flat bonuses.
+- Weight 9 among that pool's items (same tier as oneUp/dynamite).

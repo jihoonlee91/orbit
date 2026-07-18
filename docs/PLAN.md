@@ -127,10 +127,29 @@ A file laying out the goals for each phase.
 
 ### Phase 5-5. Vortex Frontier (Stages 71-80)
 
-- Add the final 10 stages with a new "vortex" hazard — a spinning
-  gravity well that curves balls into an orbit instead of a straight
-  pull — plus 10 visually distinct space compositions rather than one
+- Add 10 more stages with a new "vortex" hazard — a spinning gravity
+  well that curves balls into an orbit instead of a straight pull —
+  plus 10 visually distinct space compositions rather than one
   recolored template
+
+### Phase 5-6. Cosmic Frontier Rework: Nebula Field (Stages 61-70)
+
+- Rework Cosmic Frontier from four disconnected sub-arcs into one
+  unified "flight into a nebula" theme, with a new "nebula field"
+  hazard (two simultaneous weaker gravity wells) and a new item, Nova
+  Surge (temporary score multiplier)
+
+### Phase 5-7. Hell (Stages 81-90)
+
+- Add 10 more stages themed as a hellscape, with a new "fire zones"
+  hazard — periodic lava-burst floor zones that damage the player
+  directly on contact, distinct from every earlier ball-only hazard
+
+### Phase 5-8. Void (Stages 91-100)
+
+- Add the final 10 stages themed as an emptying void, with near-zero
+  gravity — balls drift instead of falling predictably, changing how
+  landing spots have to be read
 
 ## Phase 6. Live Ops & Post-Launch Polish
 

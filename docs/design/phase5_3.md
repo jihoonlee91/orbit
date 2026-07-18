@@ -1,12 +1,18 @@
 # Phase 5-3. Cosmic Frontier (Stages 61-70)
 
 > Renumbered from the original 51-60 when `phase5_4.md`'s World Tour II
-> insertion pushed every later block down by 10 stages. The theme and
-> backgrounds below are unchanged, only the stage numbers shifted.
-> Later followed by `phase5_5.md`'s Vortex Frontier (71-80), so this is
-> no longer the final block either.
+> insertion pushed every later block down by 10 stages. Later followed
+> by `phase5_5.md`'s Vortex Frontier (71-80), so this is no longer the
+> final block either.
+>
+> **Superseded by `phase5_6.md`**: this block originally shipped as
+> four disconnected sub-arcs (Solar System / Galaxy / Deep Space /
+> Hellfire) with no hazard of its own, described below for history. It
+> was reworked into one unified "flight into a nebula" theme with its
+> own hazard (Nebula Field) and item (Nova Surge) — see `phase5_6.md`
+> for the current design.
 
-## Goal
+## Goal (original)
 
 - Extend the game from 50 to 60 stages (now 61-70 after renumbering),
   and give the "space" theming already used for Dimension X (31-40) and
@@ -16,7 +22,7 @@
   — and ends on a deliberately different, more intense finale rather
   than more of the same starfield.
 
-## Theme
+## Theme (original)
 
 Four sub-arcs across the ten stages, each with its own backdrop
 variants (same parametrized-generator pattern as the Dimension
@@ -33,21 +39,12 @@ X/Trench/Stellar Forge backgrounds):
   pinpoint stars. The visual pace deliberately slows down and empties
   out before the finale, for contrast.
 - **Hellfire (70)** — a sharp tonal break from the cold blues of Deep
-  Space into a molten red/orange lavascape with rising embers. No
-  longer the true final stage of the game since `phase5_5.md`'s Vortex
-  Frontier (71-80) now follows it, but still a deliberate intensity
-  peak before that final arc.
+  Space into a molten red/orange lavascape with rising embers.
 
-No new environmental hazard mechanic ships with this block — gravity
-wells and currents are already scoped to their own stage ranges
-(`currents.ts`, `gravityWells.ts`) and don't extend here, matching how
-stages 1-30 also have no unique hazard. Ball count/speed continue
-scaling automatically via the existing stage-index-driven formulas in
-`engine.ts` (`createStage`) and `constants.ts`
-(`getStageTimeSeconds`/`getStageItemDropChance`), so no changes are
-needed there beyond raising `STAGE_COUNT`.
+No new environmental hazard mechanic shipped with this block originally
+— see `phase5_6.md` for the Nebula Field hazard added later.
 
-## Files
+## Files (original)
 
 - `src/game/backgrounds.ts` — 10 new backgrounds (`drawSolarSystemBackground`,
   `drawGalaxyBackground`, `drawDeepSpaceBackground`, `drawHellfireBackground`)
