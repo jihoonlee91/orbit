@@ -9,6 +9,13 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.19.0',
+    date: '2026-07-19',
+    notes: [
+      'The main screen now shows how far you\'ve unlocked ("Unlocked: Stage N / 100") and adds a "Continue" button that jumps straight into your highest unlocked stage.',
+    ],
+  },
+  {
     version: '1.18.0',
     date: '2026-07-19',
     notes: [
@@ -53,14 +60,6 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       'Platform layouts stopped repeating the same shape past stage 20 — 8 distinct hand-designed arrangements now cycle across stages 21-100.',
       'Two new items: Fireproof (Hell, stage 81+) grants brief immunity to fire zones, and Anchor (Void, stage 91+) briefly restores normal gravity.',
       'Fixed ball speed climbing unbounded past stage 80 — it now caps at the same speed as the original 80-stage design, so Hell and Void stay winnable.',
-    ],
-  },
-  {
-    version: '1.15.0',
-    date: '2026-07-17',
-    notes: [
-      '20 more stages! Hell (81-90) adds periodic lava-burst floor zones, and Void (91-100) drops gravity to near-zero — the game now runs 100 stages deep.',
-      'Cosmic Frontier (61-70) reworked into one continuous "flight into a nebula" theme, with a new hazard (Nebula Field) and a new item, Nova Surge, that doubles score gained from hitting balls for 10 seconds.',
     ],
   },
 ]

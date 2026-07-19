@@ -255,6 +255,11 @@ function App() {
     }
   }
 
+  const continueGame = () => {
+    unlockAudio()
+    beginCountdown(highestUnlockedStage)
+  }
+
   const advanceTutorial = () => {
     const isLastStep = tutorialStep === TUTORIAL_STEPS.length - 1
     if (!isLastStep) setTutorialStep((step) => step + 1)
@@ -462,6 +467,9 @@ function App() {
         <p className="main-kicker">Classic World Tour • 1 Player</p>
         <h1>ORBIT</h1>
         <p className="main-tagline">Pop • Split • Clear the Stage</p>
+        <p className="main-unlock-progress">
+          Unlocked: Stage {highestUnlockedStage + 1} / {STAGE_COUNT}
+        </p>
         <p className="controls-summary main-controls">{CONTROLS_SUMMARY}</p>
         <div className="main-actions">
           <button
@@ -471,6 +479,15 @@ function App() {
           >
             Start Game
           </button>
+          {highestUnlockedStage > 0 && (
+            <button
+              type="button"
+              className="screen-button screen-button-secondary"
+              onClick={continueGame}
+            >
+              Continue (Stage {highestUnlockedStage + 1})
+            </button>
+          )}
           <button
             type="button"
             className="screen-button screen-button-secondary"
