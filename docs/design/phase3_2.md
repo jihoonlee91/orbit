@@ -18,6 +18,10 @@
 - Ball count for stage n (0-indexed) = `min(floor((n - 5) / 2) + 3, 8)` —
   caps at 8 balls from stage 16 onward.
 - Time budget for stage n (0-indexed) = `STAGE_TIME_SECONDS - n`, floored at
-  12 seconds (`getStageTimeSeconds`, `constants.ts`) — added when `STAGE_COUNT`
+  20 seconds (`getStageTimeSeconds`, `constants.ts`) — added when `STAGE_COUNT`
   grew past 90, since the unfloored formula went to zero/negative and ended
-  the run the instant it started for every stage from 91 onward.
+  the run the instant it started for every stage from 91 onward. Originally
+  floored at 12s, raised to 20s: with the default single harpoon (~0.6s
+  round trip, ~1.5 hits/sec) and up to 8 max-size balls needing up to 56
+  total hits to fully clear, 12s only allowed ~18 hits — unwinnable without
+  power-ups, which read as running out of time rather than a real challenge.
