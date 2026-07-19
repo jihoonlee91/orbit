@@ -52,3 +52,31 @@
   (`ANCHOR_DURATION_MS`) of restored normal gravity in Void — balls fall
   predictably again instead of drifting, letting the player briefly read
   landing spots the normal way. Weight 10.
+
+## New general-purpose items: Magnet, Combo Lock, Shockwave
+
+Three items rolled into the base pool from stage 1 onward (not tied to any
+specific hazard block), rounding out the roster with effects distinct from
+every existing item:
+
+- **Magnet** (`MAGNET_DURATION_MS` = 8s): for the duration, every dropped
+  item on screen steers toward the player instead of falling straight down.
+  Implemented as an exponential horizontal approach in `stepItem`
+  (`engine.ts`) — a `magnetTargetX` parameter that, when given, closes a
+  fraction (`MAGNET_PULL_RATE` = 4/sec) of the remaining gap each frame, so
+  nearby items snap in fast while far ones still take a moment. Weight 10
+  (same tier as barrier/speedBoost).
+- **Combo Lock** (`COMBO_LOCK_DURATION_MS` = 10s): the combo counter no
+  longer resets from missing the `COMBO_WINDOW_MS` timing gap while active
+  — every hit increments it regardless of pacing. Pure QoL/scoring item,
+  no interaction with any hazard. Weight 8 (same tier as timePlus/scoreBonus).
+- **Shockwave**: an instant "positive Dynamite" — every ball currently on
+  screen splits down exactly one level (not recursively to the smallest,
+  unlike Dynamite), each split awarding the same per-ball score a normal
+  harpoon hit would (combo multiplier and Nova Surge included). A burst of
+  score at the cost of leaving more (smaller) balls to clear. Weight 6
+  (same tier as invincible — a powerful effect, kept rarer).
+
+All three follow the same "apply an effect" model and popup-announcement
+pattern as every other item; Magnet and Combo Lock are timed buffs shown
+in the HUD buff list, Shockwave is instant like Dynamite/1UP/Score Bonus.
