@@ -16,8 +16,13 @@
   - Dynamite: a hazard — on pickup, all balls on screen recursively split down to the smallest size (level 0) instantly (`explodeToSmallest`), and awards no score
 - Items have a small chance of dropping randomly when a ball is split/removed by a hit (`ITEM_DROP_CHANCE` = 14%), then fall under gravity and despawn if they go off-screen. Touching one as the player applies its effect immediately and plays a sound effect
 - The dropped item's type is decided via a weighted draw (`ITEM_WEIGHTS`): double wire/clock/hourglass/barrier appear relatively often (20-22 each), while 1UP and dynamite appear rarely (9 each)
-- The Vulcan missile/power wire (weapon-swap types) are excluded from this scope
+- Vulcan missile and power wire were later implemented too (see "Vulcan and Power Harpoon tuning" below) — the "excluded from this scope" note above no longer applies
 - When an item is picked up, a short-lived popup announces which effect just triggered (e.g. "Double Wire!", "Barrier!") at the pickup location, using the same popup mechanism as score-gain text (`phase4_1.md`), so the effect is never a mystery to the player
+
+## Vulcan and Power Harpoon tuning
+
+- **Vulcan** (rapid-fire, `MAX_VULCAN_SHOTS`/`VULCAN_DURATION_MS`) trivialized the early-mid game once picked up, so it's capped to only drop through stage 30 (0-indexed, `VULCAN_END_STAGE` in `getItemWeights`) — the same range World Tour II covers — and steps out of the pool for every stage after.
+- **Power Harpoon** (`powerWire`, pierces through balls for `POWER_WIRE_DURATION_MS`) had its duration halved (12s → 6s) and its drop weight doubled (10 → 20, now the second-most-common item after Double Wire) — shows up much more often but each pickup is a shorter, punchier burst rather than a long stretch of trivial clearing.
 
 ## Late-stage item: Stabilizer
 
