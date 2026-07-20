@@ -42,3 +42,24 @@
   drag's start position. Combined with dropping tap-to-fire (above),
   moving and firing are now fully independent gestures that can happen
   at the same time without interfering with each other.
+
+### Dead-zone drag silently not registering (single touch)
+
+- Found after shipping the above: a **single** touch dragging in the
+  dead zone did nothing, but the exact same drag worked fine if a
+  second finger was already holding the Fire button. Root cause:
+  `body` sets `touch-action: manipulation` globally (`index.css`, so
+  the menu/map/settings screens can still scroll). That permits the
+  browser's own pan-gesture recognizer to compete with our
+  `pointermove` listener for a touch that starts outside the canvas —
+  on a lone touch the browser can win and start a native pan before our
+  handler's `preventDefault()` (itself gated behind a 4px-moved
+  threshold) ever runs, which can end the pointer sequence early. A
+  second touch already in progress (e.g. holding Fire) happened to
+  avoid this because the browser doesn't start a _new_ pan gesture
+  once one touch is already claimed — which is what made it look
+  Fire-button-dependent rather than what it actually was.
+- Fixed by locking `document.body.style.touchAction = 'none'` for the
+  lifetime of the `GamePlay` screen (a `useEffect` that restores the
+  previous value on unmount), removing the competition entirely rather
+  than just reacting to it after the fact.
