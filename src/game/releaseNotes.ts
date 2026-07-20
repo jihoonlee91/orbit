@@ -9,6 +9,14 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.22.0',
+    date: '2026-07-20',
+    notes: [
+      "What's New now opens on its own the first time you load the game after an update, instead of waiting for you to check Settings.",
+      "Every 10th stage's certificate screen now shows how you're tracking against your personal best score.",
+    ],
+  },
+  {
     version: '1.21.5',
     date: '2026-07-20',
     notes: [
@@ -49,14 +57,6 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     notes: [
       'The game now goes all the way to stage 150! Five new theme blocks: Toxic Marsh (telegraphed acid rain), Frozen Summit (icy gusts that push you sideways), Solar Storm (a screen-wide flare that slows you down), Quantum Rift (balls that randomly phase-jump), and the finale Overdrive Nexus (twin gravity wells that flip between pulling and pushing).',
       'Five new items pair with the new hazards: Umbrella, Grip Boots, Visor, Lock-On, and the capstone Overdrive (blocks all hazard damage and boosts your score for 8 seconds).',
-    ],
-  },
-  {
-    version: '1.20.0',
-    date: '2026-07-19',
-    notes: [
-      'New Glossary page (from the main menu) shows every item and map hazard with its actual in-game icon and what it does.',
-      'The first time you reach a stage with a brand-new hazard, a one-time popup explains it before you have to figure it out the hard way.',
     ],
   },
 ]
