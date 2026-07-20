@@ -1416,6 +1416,7 @@ function GamePlay({
   const nextItemIdRef = useRef(1)
   const inputRef = useRef(new InputController())
   const dragRef = useRef<{
+    pointerId: number
     startClientX: number
     startPlayerX: number
     moved: boolean
@@ -1658,27 +1659,28 @@ function GamePlay({
   }, [demo, isStarting])
 
   useEffect(() => {
-    // The canvas's own onPointerDown/Move/Up already handle drag-to-move
-    // for touches that land directly on it. In portrait, the canvas is
-    // letterboxed (16:9 inside a narrow, tall viewport) and the whole
-    // play area sits centered with real dead space above/below it — a
-    // swipe that starts there previously did nothing. This mirrors the
-    // exact same drag math against the whole window instead, skipping
-    // any touch that starts on the canvas (already handled) or on an
-    // interactive control (HUD buttons, touch-controls, hint panel),
-    // so existing tap/press behavior is untouched.
+    // Sole driver of touch/mouse drag-to-move, covering the canvas *and*
+    // the dead space around it (in portrait, the letterboxed 16:9 canvas
+    // sits centered in a taller viewport with real unused space above/
+    // below it — a swipe starting there previously did nothing). Firing
+    // is deliberately NOT triggered here — it's the dedicated Fire
+    // button's job only, so a drag can never misfire and holding Fire
+    // can never get tangled up with a simultaneous move-drag from another
+    // finger. `pointerId`-scoped so a second touch (e.g. holding Fire)
+    // can't hijack an in-progress drag's start position.
     if (demo) return
 
     const isOnHandledElement = (target: EventTarget | null) =>
       target instanceof HTMLElement &&
-      target.closest(
-        '.gameplay-hud, .touch-controls, .hint-panel, canvas, button',
-      ) !== null
+      target.closest('.gameplay-hud, .touch-controls, .hint-panel, button') !==
+        null
 
     const handlePointerDown = (e: PointerEvent) => {
       if (paused || isStarting) return
+      if (dragRef.current) return
       if (isOnHandledElement(e.target)) return
       dragRef.current = {
+        pointerId: e.pointerId,
         startClientX: e.clientX,
         startPlayerX: playerXRef.current,
         moved: false,
@@ -1688,7 +1690,7 @@ function GamePlay({
     const handlePointerMove = (e: PointerEvent) => {
       const drag = dragRef.current
       const canvas = canvasRef.current
-      if (!drag || !canvas) return
+      if (!drag || !canvas || e.pointerId !== drag.pointerId) return
       const rect = canvas.getBoundingClientRect()
       const scale = CANVAS_WIDTH / rect.width
       const deltaX = (e.clientX - drag.startClientX) * scale
@@ -1703,10 +1705,8 @@ function GamePlay({
         CANVAS_WIDTH - PLAYER_WIDTH / 2,
       )
     }
-    const handlePointerEnd = () => {
-      if (dragRef.current && !dragRef.current.moved) {
-        inputRef.current.queueFire()
-      }
+    const handlePointerEnd = (e: PointerEvent) => {
+      if (!dragRef.current || e.pointerId !== dragRef.current.pointerId) return
       dragRef.current = null
       dragTargetXRef.current = null
     }
@@ -2980,48 +2980,6 @@ function GamePlay({
             ref={canvasRef}
             aria-label="Orbit game field. Move left and right and fire harpoons to pop every ball."
             style={{ border: '1px solid #2e303a', touchAction: 'none' }}
-            onPointerDown={(e) => {
-              if (demo || paused || isStarting) return
-              e.currentTarget.setPointerCapture(e.pointerId)
-              dragRef.current = {
-                startClientX: e.clientX,
-                startPlayerX: playerXRef.current,
-                moved: false,
-              }
-              dragTargetXRef.current = playerXRef.current
-            }}
-            onPointerMove={(e) => {
-              if (demo) return
-              const drag = dragRef.current
-              const canvas = canvasRef.current
-              if (!drag || !canvas) return
-              const rect = canvas.getBoundingClientRect()
-              const scale = CANVAS_WIDTH / rect.width
-              const deltaX = (e.clientX - drag.startClientX) * scale
-              if (Math.abs(deltaX) > 4) drag.moved = true
-              dragTargetXRef.current = Math.min(
-                Math.max(drag.startPlayerX + deltaX, PLAYER_WIDTH / 2),
-                CANVAS_WIDTH - PLAYER_WIDTH / 2,
-              )
-            }}
-            onPointerUp={(e) => {
-              if (dragRef.current && !dragRef.current.moved) {
-                inputRef.current.queueFire()
-              }
-              dragRef.current = null
-              dragTargetXRef.current = null
-              if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-                e.currentTarget.releasePointerCapture(e.pointerId)
-              }
-            }}
-            onPointerCancel={() => {
-              dragRef.current = null
-              dragTargetXRef.current = null
-            }}
-            onLostPointerCapture={() => {
-              dragRef.current = null
-              dragTargetXRef.current = null
-            }}
           />
           {isStarting && (
             <div

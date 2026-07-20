@@ -15,10 +15,10 @@
 - Player: fixed y at the bottom, a rectangle that can move left/right, movement speed 300px/s (keyboard ←/→ or A/D)
 - Fire: Space key, only 1 harpoon can exist at a time by default (the existing harpoon must disappear before firing again; the double-wire power-up raises this to 2)
 - The harpoon moves upward from the player's x position at 700px/s, and despawns on reaching the ceiling or colliding with a ball
-- Touch/mobile controls: direct touch on the canvas, no on-screen buttons
-  - Drag (touch + move): sets a target x position (current ship position + finger's horizontal delta since touch start), but the ship still only moves toward that target at the same max speed as keyboard movement (300px/s) — this keeps drag from being an unfair "teleport dodge" compared to keyboard/on-screen controls
-  - Tap (touch down and up without dragging past a small threshold): fires once, equivalent to a single Space press
-  - Implemented as pointer events on the canvas itself (`touch-action: none` to prevent page scroll while dragging)
+- Touch/mobile controls: on-screen Left/Right/Fire buttons (`TouchControls`) are the primary input; direct drag anywhere on the play screen is a secondary, equivalent way to move
+  - Drag (touch/mouse + move): sets a target x position (current ship position + pointer's horizontal delta since drag start), but the ship still only moves toward that target at the same max speed as keyboard movement (300px/s) — this keeps drag from being an unfair "teleport dodge" compared to keyboard/on-screen controls
+  - Firing is exclusively the dedicated Fire button (and Space on keyboard) — a plain tap/click with no drag does **not** fire. This used to be a canvas-only tap gesture, but a tap-to-fire dead reckoning on _any_ part of the drag region (see below) made accidental fires from a quick reposition too easy, and conflicted with holding Fire in one hand while steering with the other, so tap-to-fire was dropped entirely in favor of button-only firing.
+  - Implemented as a single `window`-level pointer listener (not scoped to the canvas), `touch-action: none` on the canvas to prevent page scroll while dragging on it
 
 ### Drag-to-move outside the canvas (portrait)
 
@@ -27,14 +27,18 @@
   dead space above/below the canvas — swiping there previously did
   nothing, forcing a thumb reach back onto the (letterboxed, often
   visually small) canvas itself to steer.
-- A second, identical drag listener is attached to `window` (not the
-  canvas), sharing the exact same `dragRef`/`dragTargetXRef` state and
-  clamp/scale math as the canvas's own handler. It's a no-op for any
-  touch that starts on the canvas itself, an HUD control, a
-  touch-control button, or the hint panel (`target.closest('.gameplay-hud,
-.touch-controls, .hint-panel, canvas, button')`) — those keep working
-  exactly as before, handled solely by their own element. Every other
-  touch on the play screen (the dead space around/below the canvas,
-  including in landscape/desktop) now drags the ship the same way, and
-  a tap-without-drag there fires a harpoon too, for consistency with
-  tapping the canvas directly.
+- The drag listener lives on `window`, not the canvas, so it already
+  covers the whole play screen — canvas and dead space alike — with one
+  code path (`dragRef`/`dragTargetXRef`, clamp/scale math against the
+  canvas's own bounding rect for coordinate conversion). It's a no-op
+  for any touch that starts on an HUD control, a touch-control button,
+  or the hint panel (`target.closest('.gameplay-hud, .touch-controls,
+.hint-panel, button')`) — those keep working exactly as before,
+  handled solely by their own element's own handlers.
+- The drag state is `pointerId`-scoped (`dragRef.current.pointerId`,
+  checked on every move/up event) so a second, simultaneous touch —
+  most notably holding the Fire button with one finger while dragging
+  to move with another — can never hijack or corrupt an in-progress
+  drag's start position. Combined with dropping tap-to-fire (above),
+  moving and firing are now fully independent gestures that can happen
+  at the same time without interfering with each other.

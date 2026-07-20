@@ -9,6 +9,13 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.21.3',
+    date: '2026-07-20',
+    notes: [
+      'Firing is now exclusively the Fire button (tapping/dragging to move never fires by accident anymore), and holding Fire no longer interferes with a drag-to-move happening at the same time.',
+    ],
+  },
+  {
     version: '1.21.2',
     date: '2026-07-19',
     notes: [
@@ -50,14 +57,6 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     date: '2026-07-19',
     notes: [
       'Three new items: Magnet pulls dropped items toward you, Combo Lock keeps your combo alive even if you miss the timing window, and Shockwave instantly splits every ball on screen for a burst of score.',
-    ],
-  },
-  {
-    version: '1.17.0',
-    date: '2026-07-19',
-    notes: [
-      'Vulcan (rapid-fire) no longer drops past stage 30 — it made the early-mid game too easy, so it now steps aside for the harder stages after.',
-      'Power Harpoon shows up twice as often now, but each pickup is a shorter, punchier 6 seconds instead of 12.',
     ],
   },
 ]
