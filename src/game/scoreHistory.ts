@@ -33,6 +33,33 @@ export function loadScoreHistory(): ScoreEntry[] {
   }
 }
 
+export function getBestScore(): number {
+  return loadScoreHistory().reduce(
+    (best, entry) => Math.max(best, entry.score),
+    0,
+  )
+}
+
+// A short nudge for the periodic milestone screen, framed around the
+// player's own best-ever score so continuing feels like it's building
+// toward something concrete rather than just "one more stage."
+export function getMilestoneEncouragement(
+  currentScore: number,
+  bestScore: number,
+): string {
+  if (bestScore <= 0) {
+    return 'Every stage from here sets your first record!'
+  }
+  if (currentScore >= bestScore) {
+    return "You're already ahead of your best score — keep it going!"
+  }
+  const gap = bestScore - currentScore
+  if (gap <= bestScore * 0.25) {
+    return `Only ${gap} points behind your best — you can catch it!`
+  }
+  return `Best score to beat: ${bestScore}. Keep pushing!`
+}
+
 export function recordScore(entry: Omit<ScoreEntry, 'name'>): {
   history: ScoreEntry[]
   rank: number

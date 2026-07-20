@@ -5,7 +5,13 @@ import StageMap from './StageMap'
 import Glossary from './Glossary'
 import { STAGE_COUNT } from './game/constants'
 import type { StageResult } from './game/types'
-import { getPlayerName, recordScore, renameEntry } from './game/scoreHistory'
+import {
+  getBestScore,
+  getMilestoneEncouragement,
+  getPlayerName,
+  recordScore,
+  renameEntry,
+} from './game/scoreHistory'
 import type { ScoreEntry } from './game/scoreHistory'
 import SettingsDialog from './components/SettingsDialog'
 import WhatsNewDialog from './components/WhatsNewDialog'
@@ -19,6 +25,7 @@ import {
 } from './game/audio'
 import { getHighestUnlockedStage, unlockStage } from './game/progress'
 import { isUpdateAvailable } from './game/updateCheck'
+import { getLastSeenVersion, setLastSeenVersion } from './game/versionSeen'
 
 type Screen =
   | 'main'
@@ -50,11 +57,9 @@ const BACK_TO_MAIN_SCREENS: readonly Screen[] = [
   'glossary',
 ]
 
-// Most back-to-main screens really do go to 'main'; 'whatsNew' is opened
-// from Settings and should return there instead.
-const SCREEN_BACK_TARGET: Partial<Record<Screen, Screen>> = {
-  whatsNew: 'settings',
-}
+// Most back-to-main screens really do go to 'main'; 'whatsNew' can be
+// opened from Settings (should return there) or auto-surfaced after an
+// update (should return to 'main' instead) — see `whatsNewReturnTo`.
 
 const COUNTDOWN_START = 3
 const STAGE_ADVANCE_COUNTDOWN = 5
@@ -70,6 +75,10 @@ const CONTROLS_SUMMARY =
 
 function App() {
   const [screen, setScreen] = useState<Screen>('main')
+  // Where "Back" on the What's New screen should return to: 'settings'
+  // when opened via the Settings menu link, 'main' when auto-surfaced
+  // right after an update is detected.
+  const [whatsNewReturnTo, setWhatsNewReturnTo] = useState<Screen>('settings')
   const [countdown, setCountdown] = useState(COUNTDOWN_START)
   const [stageIndex, setStageIndex] = useState(0)
   // Bumped on every demo game over, purely to force GamePlay to remount —
@@ -197,6 +206,22 @@ function App() {
     const timer = window.setTimeout(() => window.location.reload(), 900)
     return () => window.clearTimeout(timer)
   }, [updateAvailable, screen])
+
+  // If this browser/device has a version recorded from before and it
+  // doesn't match what's running now, the player was just updated (either
+  // via the auto-reload above, or a plain page reload after a redeploy) —
+  // surface what changed instead of leaving them to notice on their own. A
+  // brand-new player (no recorded version at all) just gets the current
+  // version silently recorded, with no changelog thrown at their first
+  // screen.
+  useEffect(() => {
+    const lastSeen = getLastSeenVersion()
+    if (lastSeen && lastSeen !== __APP_VERSION__) {
+      setWhatsNewReturnTo('main')
+      setScreen('whatsNew')
+    }
+    setLastSeenVersion(__APP_VERSION__)
+  }, [])
 
   useEffect(() => {
     saveSettings(settings)
@@ -426,13 +451,13 @@ function App() {
       if (event.key !== 'Escape' || event.repeat) return
       if (BACK_TO_MAIN_SCREENS.includes(screen)) {
         event.preventDefault()
-        setScreen(SCREEN_BACK_TARGET[screen] ?? 'main')
+        setScreen(screen === 'whatsNew' ? whatsNewReturnTo : 'main')
       }
       // 'play'/'stageClear' already handle Escape themselves (pause toggle).
     }
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
-  }, [screen])
+  }, [screen, whatsNewReturnTo])
 
   // Push a history entry for every non-main screen so the browser/Android
   // back gesture has something to "pop" instead of leaving the app.
@@ -443,7 +468,7 @@ function App() {
   useEffect(() => {
     const handlePopState = () => {
       if (BACK_TO_MAIN_SCREENS.includes(screen)) {
-        setScreen(SCREEN_BACK_TARGET[screen] ?? 'main')
+        setScreen(screen === 'whatsNew' ? whatsNewReturnTo : 'main')
       } else if (screen === 'play' || screen === 'stageClear') {
         // No real keydown fires for a hardware back gesture — synthesize
         // the Escape GamePlay already listens for, to pause instead of
@@ -453,7 +478,7 @@ function App() {
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [screen])
+  }, [screen, whatsNewReturnTo])
 
   if (screen === 'main') {
     return (
@@ -567,14 +592,17 @@ function App() {
           setTutorialStep(0)
           setScreen('tutorial')
         }}
-        onShowWhatsNew={() => setScreen('whatsNew')}
+        onShowWhatsNew={() => {
+          setWhatsNewReturnTo('settings')
+          setScreen('whatsNew')
+        }}
         manualInstallHint={manualInstallHint}
       />
     )
   }
 
   if (screen === 'whatsNew') {
-    return <WhatsNewDialog onBack={() => setScreen('settings')} />
+    return <WhatsNewDialog onBack={() => setScreen(whatsNewReturnTo)} />
   }
 
   if (screen === 'tutorial') {
@@ -664,6 +692,9 @@ function App() {
           {milestoneStage} stages down, {STAGE_COUNT - milestoneStage} to go.
         </p>
         <p className="result-score">Score {finalScore}</p>
+        <p className="milestone-encouragement">
+          {getMilestoneEncouragement(finalScore, getBestScore())}
+        </p>
         <button
           type="button"
           className="screen-button"

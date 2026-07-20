@@ -1835,6 +1835,12 @@
   color: #bae6fd;
 }
 
+.milestone-encouragement {
+  color: #fde68a;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
 .result-actions {
   display: flex;
   flex-direction: column;
@@ -2569,6 +2575,10 @@
 
 #root .milestone-tagline {
   color: var(--retro-cyan) !important;
+}
+
+#root .milestone-encouragement {
+  color: var(--retro-yellow) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
