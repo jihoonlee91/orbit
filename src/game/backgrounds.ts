@@ -9,6 +9,19 @@ import rioUrl from '../assets/backgrounds/stage17-rio.webp'
 import machuPicchuUrl from '../assets/backgrounds/stage18-machu-picchu.webp'
 import grandCanyonUrl from '../assets/backgrounds/stage19-grand-canyon.webp'
 import auroraVillageUrl from '../assets/backgrounds/stage20-aurora-village.webp'
+import worldTour2PlateUrl from '../assets/backgrounds/stages21-30-world-tour-2.webp'
+import dimensionXPlateUrl from '../assets/backgrounds/stages31-40-dimension-x.webp'
+import trenchPlateUrl from '../assets/backgrounds/stages41-50-trench.webp'
+import stellarForgePlateUrl from '../assets/backgrounds/stages51-60-stellar-forge.webp'
+import cosmicFrontierPlateUrl from '../assets/backgrounds/stages61-70-cosmic-frontier.webp'
+import vortexFrontierPlateUrl from '../assets/backgrounds/stages71-80-vortex-frontier.webp'
+import hellPlateUrl from '../assets/backgrounds/stages81-90-hell.webp'
+import voidPlateUrl from '../assets/backgrounds/stages91-100-void.webp'
+import toxicMarshPlateUrl from '../assets/backgrounds/stages101-110-toxic-marsh.webp'
+import frozenSummitPlateUrl from '../assets/backgrounds/stages111-120-frozen-summit.webp'
+import solarStormPlateUrl from '../assets/backgrounds/stages121-130-solar-storm.webp'
+import quantumRiftPlateUrl from '../assets/backgrounds/stages131-140-quantum-rift.webp'
+import overdriveNexusPlateUrl from '../assets/backgrounds/stages141-150-overdrive-nexus.webp'
 
 export const GROUND_Y = CANVAS_HEIGHT - 90
 export const BACKGROUND_READY_EVENT = 'pang-background-ready'
@@ -1126,6 +1139,96 @@ function createIllustratedBackground(
 const ILLUSTRATED_BACKGROUNDS = LATE_STAGE_IMAGE_URLS.map((src, index) =>
   createIllustratedBackground(src, NIGHT_BACKGROUNDS[index]),
 )
+
+function drawChapterArtPlate(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  stageOffset: number,
+) {
+  const zoom = 1.035 + (stageOffset % 4) * 0.012
+  const sourceWidth = image.naturalWidth / zoom
+  const sourceHeight = image.naturalHeight / zoom
+  const panX = (stageOffset % 5) / 4
+  const panY = Math.floor(stageOffset / 5)
+  const sourceX = (image.naturalWidth - sourceWidth) * panX
+  const sourceY = (image.naturalHeight - sourceHeight) * panY
+  const hueShift = (stageOffset - 4.5) * 1.8
+
+  ctx.save()
+  ctx.filter = `saturate(1.08) contrast(1.04) hue-rotate(${hueShift}deg)`
+  ctx.globalCompositeOperation = 'soft-light'
+  ctx.globalAlpha = 0.42
+  ctx.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    CANVAS_WIDTH,
+    CANVAS_HEIGHT,
+  )
+  ctx.globalCompositeOperation = 'source-over'
+  ctx.globalAlpha = 0.42
+  ctx.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    CANVAS_WIDTH,
+    CANVAS_HEIGHT,
+  )
+  ctx.restore()
+
+  const vignette = ctx.createRadialGradient(
+    CANVAS_WIDTH / 2,
+    CANVAS_HEIGHT * 0.43,
+    CANVAS_HEIGHT * 0.18,
+    CANVAS_WIDTH / 2,
+    CANVAS_HEIGHT * 0.48,
+    CANVAS_WIDTH * 0.62,
+  )
+  vignette.addColorStop(0, 'rgba(255,255,255,0.025)')
+  vignette.addColorStop(0.68, 'rgba(8,15,32,0.015)')
+  vignette.addColorStop(1, 'rgba(2,6,23,0.2)')
+  ctx.fillStyle = vignette
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+}
+
+function createChapterIllustratedBackgrounds(
+  src: string,
+  fallbacks: readonly ((ctx: CanvasRenderingContext2D) => void)[],
+) {
+  let image: HTMLImageElement | null = null
+
+  function ensureImage() {
+    if (image || typeof Image === 'undefined') return
+
+    image = new Image()
+    image.decoding = 'async'
+    image.addEventListener('load', () => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(BACKGROUND_READY_EVENT))
+      }
+    })
+    image.src = src
+  }
+
+  return fallbacks.map(
+    (fallback, stageOffset) => (ctx: CanvasRenderingContext2D) => {
+      fallback(ctx)
+      if (image?.complete && image.naturalWidth > 0) {
+        drawChapterArtPlate(ctx, image, stageOffset)
+      } else {
+        ensureImage()
+      }
+    },
+  )
+}
 
 function drawNeonMegacityBackground(ctx: CanvasRenderingContext2D) {
   drawSky(ctx, '#07051f', '#172554')
@@ -4951,22 +5054,83 @@ const OVERDRIVE_NEXUS_BACKGROUNDS = [
   drawOrbitsEndBackground,
 ]
 
+const ILLUSTRATED_WORLD_TOUR_2_BACKGROUNDS =
+  createChapterIllustratedBackgrounds(
+    worldTour2PlateUrl,
+    WORLD_TOUR_2_BACKGROUNDS,
+  )
+const ILLUSTRATED_DIMENSION_BACKGROUNDS = createChapterIllustratedBackgrounds(
+  dimensionXPlateUrl,
+  DIMENSION_BACKGROUNDS,
+)
+const ILLUSTRATED_TRENCH_BACKGROUNDS = createChapterIllustratedBackgrounds(
+  trenchPlateUrl,
+  TRENCH_BACKGROUNDS,
+)
+const ILLUSTRATED_FORGE_BACKGROUNDS = createChapterIllustratedBackgrounds(
+  stellarForgePlateUrl,
+  FORGE_BACKGROUNDS,
+)
+const ILLUSTRATED_COSMIC_FRONTIER_BACKGROUNDS =
+  createChapterIllustratedBackgrounds(
+    cosmicFrontierPlateUrl,
+    COSMIC_FRONTIER_BACKGROUNDS,
+  )
+const ILLUSTRATED_VORTEX_FRONTIER_BACKGROUNDS =
+  createChapterIllustratedBackgrounds(
+    vortexFrontierPlateUrl,
+    VORTEX_FRONTIER_BACKGROUNDS,
+  )
+const ILLUSTRATED_HELL_BACKGROUNDS = createChapterIllustratedBackgrounds(
+  hellPlateUrl,
+  HELL_BACKGROUNDS,
+)
+const ILLUSTRATED_VOID_BACKGROUNDS = createChapterIllustratedBackgrounds(
+  voidPlateUrl,
+  VOID_BACKGROUNDS,
+)
+const ILLUSTRATED_TOXIC_MARSH_BACKGROUNDS =
+  createChapterIllustratedBackgrounds(
+    toxicMarshPlateUrl,
+    TOXIC_MARSH_BACKGROUNDS,
+  )
+const ILLUSTRATED_FROZEN_SUMMIT_BACKGROUNDS =
+  createChapterIllustratedBackgrounds(
+    frozenSummitPlateUrl,
+    FROZEN_SUMMIT_BACKGROUNDS,
+  )
+const ILLUSTRATED_SOLAR_STORM_BACKGROUNDS =
+  createChapterIllustratedBackgrounds(
+    solarStormPlateUrl,
+    SOLAR_STORM_BACKGROUNDS,
+  )
+const ILLUSTRATED_QUANTUM_RIFT_BACKGROUNDS =
+  createChapterIllustratedBackgrounds(
+    quantumRiftPlateUrl,
+    QUANTUM_RIFT_BACKGROUNDS,
+  )
+const ILLUSTRATED_OVERDRIVE_NEXUS_BACKGROUNDS =
+  createChapterIllustratedBackgrounds(
+    overdriveNexusPlateUrl,
+    OVERDRIVE_NEXUS_BACKGROUNDS,
+  )
+
 const RAW_BACKGROUNDS = [
   ...BASE_BACKGROUNDS,
   ...ILLUSTRATED_BACKGROUNDS,
-  ...WORLD_TOUR_2_BACKGROUNDS,
-  ...DIMENSION_BACKGROUNDS,
-  ...TRENCH_BACKGROUNDS,
-  ...FORGE_BACKGROUNDS,
-  ...COSMIC_FRONTIER_BACKGROUNDS,
-  ...VORTEX_FRONTIER_BACKGROUNDS,
-  ...HELL_BACKGROUNDS,
-  ...VOID_BACKGROUNDS,
-  ...TOXIC_MARSH_BACKGROUNDS,
-  ...FROZEN_SUMMIT_BACKGROUNDS,
-  ...SOLAR_STORM_BACKGROUNDS,
-  ...QUANTUM_RIFT_BACKGROUNDS,
-  ...OVERDRIVE_NEXUS_BACKGROUNDS,
+  ...ILLUSTRATED_WORLD_TOUR_2_BACKGROUNDS,
+  ...ILLUSTRATED_DIMENSION_BACKGROUNDS,
+  ...ILLUSTRATED_TRENCH_BACKGROUNDS,
+  ...ILLUSTRATED_FORGE_BACKGROUNDS,
+  ...ILLUSTRATED_COSMIC_FRONTIER_BACKGROUNDS,
+  ...ILLUSTRATED_VORTEX_FRONTIER_BACKGROUNDS,
+  ...ILLUSTRATED_HELL_BACKGROUNDS,
+  ...ILLUSTRATED_VOID_BACKGROUNDS,
+  ...ILLUSTRATED_TOXIC_MARSH_BACKGROUNDS,
+  ...ILLUSTRATED_FROZEN_SUMMIT_BACKGROUNDS,
+  ...ILLUSTRATED_SOLAR_STORM_BACKGROUNDS,
+  ...ILLUSTRATED_QUANTUM_RIFT_BACKGROUNDS,
+  ...ILLUSTRATED_OVERDRIVE_NEXUS_BACKGROUNDS,
 ]
 
 export const BACKGROUNDS = RAW_BACKGROUNDS.map(
