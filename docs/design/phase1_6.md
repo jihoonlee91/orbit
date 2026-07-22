@@ -71,3 +71,47 @@ pressure:
 - The settle deadzone tightened from 10px to 6px — snappier final
   alignment with no visible oscillation, since the fire decision no
   longer depends on being settled anyway.
+
+Live QA against real runs (Playwright-driven demo sessions with a state
+probe) then surfaced four failure modes the first cut still had, each
+fixed in the same pass:
+
+- **Swept threat map** (`predictBallThreats`, replacing
+  `predictLandingSpot` for the AI's danger map): modeling each ball as
+  only its next low point left a blind spot — a ball sweeping
+  horizontally through the player's row between bounces never has a
+  "low point" nearby yet absolutely hits on the way through. One
+  forward sim per ball now yields both the aiming answer (same low
+  point as before) and a sampled trace of every moment the ball's path
+  dips into the player band, and the whole trace goes into `chooseSafeX`.
+- **Engaged-target reflex window**: excluding the engaged target from
+  the danger map entirely (the original rule) let a row-height ball
+  side-swipe the player — side contact (half-width + radius out) wins
+  the race against the centered wire (radius out). But dodging the
+  engaged target _fully_ creates the opposite bug: a permanent standoff
+  against a low-bouncing last ball whose own sweep blankets its landing
+  spot, which the AI then never dares approach (observed live as the AI
+  hovering ~100px away from the final ball indefinitely). The rule that
+  works: drop the engaged target's threats _beyond_ the reflex window
+  (standing in its future path is the plan — the wire pops it first),
+  keep the imminent ones (≤0.35s) so the reflex escape still fires, and
+  let the opportunistic fire snipe the chaser as it crosses the vacated
+  column.
+- **Explosive-item gating**: dynamite/shockwave are the fastest clears
+  in the game but suicide on a full screen — detonating 8 max-size
+  balls floods 30+ fast small balls at once, which is exactly how the
+  first cut kept dying on late stages. Explosives are only worth
+  grabbing when the post-blast ball count (each ball's `2^level`
+  eventual leaves) stays small, or a barrier/invincibility is up to
+  tank the burst. Relatedly, once ball count exceeds a flood threshold
+  the AI stops chasing aiming positions entirely and parks at the
+  nearest safe gap — transit exposure through a saturated screen
+  outweighs any aiming gain — letting opportunistic fire thin the
+  swarm.
+- **Travel-capped dodge candidates** (`chooseSafeX` `maxTravelPx`): the
+  planner scored candidate positions only on destination safety, where
+  a distant spot can look perfect purely because every threat "resolves
+  before arrival" — saying nothing about the wall of balls the sprint
+  there runs through. Candidates are now capped to the honestly
+  reachable band per re-plan, so distant goals are approached step by
+  safe step instead of committed sprints through traffic.
