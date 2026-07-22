@@ -5239,11 +5239,11 @@ const CHAOS_RIFT_CHAPTER_BACKGROUNDS = [
   ),
   ...createChapterIllustratedBackgrounds(
     prismaticCollapsePlateUrl,
-    TRENCH_BACKGROUNDS,
+    QUANTUM_RIFT_BACKGROUNDS,
   ),
   ...createChapterIllustratedBackgrounds(
     finalSingularityPlateUrl,
-    FORGE_BACKGROUNDS,
+    OVERDRIVE_NEXUS_BACKGROUNDS,
   ),
 ]
 
