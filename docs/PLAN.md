@@ -202,3 +202,9 @@ A file laying out the goals for each phase.
   Settings visit
 - Add a personal-best encouragement message to the periodic milestone
   screen to nudge continued play mid-session
+
+### Phase 6-4. Illustrated Late-stage Backgrounds
+
+- Upgrade stages 21-150 with chapter-specific WebP art plates while preserving each stage's distinct Canvas composition
+- Share the same async image-loading and fallback behavior used by stages 11-20
+- Keep the 150-card stage map responsive by reusing one optimized plate per 10-stage chapter
