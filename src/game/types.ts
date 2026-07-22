@@ -5,13 +5,14 @@ export type Ball = {
   vx: number
   vy: number
   level: number
+  golden?: boolean
 }
 
 export type Harpoon = {
   x: number
   y: number
   baseY?: number
-  kind?: 'normal' | 'powerWire' | 'vulcan'
+  kind?: 'normal' | 'powerWire' | 'vulcan' | 'pierce'
   expiresAt?: number
 }
 
@@ -40,6 +41,7 @@ export type ItemType =
   | 'visor'
   | 'lockOn'
   | 'overdrive'
+  | 'pierce'
 
 export type Item = {
   id: number

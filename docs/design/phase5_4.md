@@ -8,9 +8,22 @@
   (Dimension X, The Trench, Stellar Forge, Cosmic Frontier) shifts down
   by 10 stages to make room — see the renumbering notes at the top of
   `phase5_1.md`/`phase5_2.md`/`phase5_3.md`.
-- No new hazard mechanic ships with this block, matching how the
-  original World Tour (1-20) also has no unique hazard beyond the
-  stages 6-10 ladder section.
+- Originally shipped with no unique hazard, matching how the original
+  World Tour (1-20) has none beyond the stages 6-10 ladder section. A
+  later pass added a "Breeze" hazard here (see below) as a gentle
+  lead-in before The Trench's much stronger current.
+
+## New mechanic: Breeze
+
+- A weak lateral wind pushes balls (not the player/harpoon) back and
+  forth, same sine-wave shape as The Trench's current but roughly a
+  third of its opening strength and with a slower, lazier period.
+- Escalates gently across the ten stages, staying well short of the
+  current's power even at its peak — this is meant to introduce the
+  idea of a push hazard, not to challenge the player yet.
+- No counter item is introduced for it; Stabilizer (which neutralizes
+  the current and the gravity-well family) isn't in the item pool until
+  stage 41, well after this block ends.
 
 ## Theme
 
@@ -53,3 +66,9 @@
 - `src/game/gravityWells.ts` — `GRAVITY_WELL_START_STAGE` shifted 40 → 50
 - Docs/README stage-count and stage-range references updated to 80 /
   the renumbered blocks
+- `src/game/breeze.ts` (added later) — per-stage breeze lookup, same
+  shape as `currents.ts`
+- `src/GamePlay.tsx` (added later) — sums the breeze's windAx into the
+  same `stepBall` wind slot the current uses (their stage ranges never
+  overlap) and renders it with the existing current-flow visual
+- `src/game/hazardCatalog.ts` (added later) — `breeze` entry

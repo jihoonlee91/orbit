@@ -56,6 +56,9 @@ import {
   LOCK_ON_DURATION_MS,
   OVERDRIVE_DURATION_MS,
   OVERDRIVE_SCORE_MULTIPLIER,
+  PIERCE_DURATION_MS,
+  GOLDEN_BALL_CHANCE,
+  GOLDEN_BALL_SCORE_MULTIPLIER,
   getItemWeights,
 } from './game/constants'
 import type { Obstacle } from './game/constants'
@@ -67,6 +70,7 @@ import {
   teleportBall,
   type Portal,
 } from './game/portals'
+import { getBreezeWindAx, getStageBreeze } from './game/breeze'
 import { getCurrentWindAx, getStageCurrent } from './game/currents'
 import { getStageGravityWell } from './game/gravityWells'
 import { getStageNebulaWells } from './game/nebulae'
@@ -99,6 +103,7 @@ import {
   getStageOverdriveBaseWells,
   getOverdriveWellsAtTime,
 } from './game/overdriveWells'
+import { getChaosRiftCurrent, getChaosRiftFireZones } from './game/chaosRift'
 import {
   createStage,
   stepBall,
@@ -181,6 +186,7 @@ const ITEM_LABELS: Record<ItemType, string> = {
   visor: 'Z',
   lockOn: 'K',
   overdrive: 'O',
+  pierce: 'R',
 }
 
 const BUFF_LABELS: Record<
@@ -201,7 +207,8 @@ const BUFF_LABELS: Record<
   | 'gripBoots'
   | 'visor'
   | 'lockOn'
-  | 'overdrive',
+  | 'overdrive'
+  | 'pierce',
   string
 > = {
   doubleWire: 'Double Wire',
@@ -222,6 +229,7 @@ const BUFF_LABELS: Record<
   visor: 'Visor',
   lockOn: 'Lock-On',
   overdrive: 'Overdrive (x1.5 Score)',
+  pierce: 'Piercer',
 }
 
 // Timed buffs start blinking in the HUD once this many seconds remain, so
@@ -247,6 +255,7 @@ const TIMED_BUFF_KEYS = [
   'visor',
   'lockOn',
   'overdrive',
+  'pierce',
 ] as const
 
 const ITEM_ANNOUNCEMENTS: Record<ItemType, string> = {
@@ -274,6 +283,7 @@ const ITEM_ANNOUNCEMENTS: Record<ItemType, string> = {
   visor: 'Visor!',
   lockOn: 'Lock-On!',
   overdrive: 'Overdrive!',
+  pierce: 'Piercer!',
 }
 
 type Particle = {
@@ -781,6 +791,7 @@ function drawHarpoon(ctx: CanvasRenderingContext2D, harpoon: Harpoon) {
   const baseY = harpoon.baseY ?? PLAYER_Y
   const ropeTop = Math.min(baseY, harpoon.y + 16)
   const isPowerWire = harpoon.kind === 'powerWire'
+  const isPierce = harpoon.kind === 'pierce'
 
   ctx.save()
   ctx.lineCap = 'round'
@@ -788,7 +799,7 @@ function drawHarpoon(ctx: CanvasRenderingContext2D, harpoon: Harpoon) {
   ctx.shadowBlur = 3
 
   // Dark outline keeps the rope readable against every stage background.
-  ctx.strokeStyle = isPowerWire ? '#14532d' : '#3f2d20'
+  ctx.strokeStyle = isPowerWire ? '#14532d' : isPierce ? '#713f12' : '#3f2d20'
   ctx.lineWidth = 5
   ctx.beginPath()
   ctx.moveTo(harpoon.x, baseY)
@@ -799,13 +810,13 @@ function drawHarpoon(ctx: CanvasRenderingContext2D, harpoon: Harpoon) {
   ctx.shadowBlur = 0
   ctx.lineWidth = 2
   ctx.setLineDash([5, 4])
-  ctx.strokeStyle = isPowerWire ? '#bbf7d0' : '#e7c58d'
+  ctx.strokeStyle = isPowerWire ? '#bbf7d0' : isPierce ? '#fde68a' : '#e7c58d'
   ctx.beginPath()
   ctx.moveTo(harpoon.x - 1, baseY)
   ctx.lineTo(harpoon.x - 1, ropeTop)
   ctx.stroke()
   ctx.lineDashOffset = 4.5
-  ctx.strokeStyle = isPowerWire ? '#22c55e' : '#9a6a3a'
+  ctx.strokeStyle = isPowerWire ? '#22c55e' : isPierce ? '#eab308' : '#9a6a3a'
   ctx.beginPath()
   ctx.moveTo(harpoon.x + 1, baseY)
   ctx.lineTo(harpoon.x + 1, ropeTop)
@@ -814,9 +825,15 @@ function drawHarpoon(ctx: CanvasRenderingContext2D, harpoon: Harpoon) {
 
   // A broad metal point with side barbs reads as a harpoon, not a plain wire.
   const metal = ctx.createLinearGradient(harpoon.x - 8, 0, harpoon.x + 8, 0)
-  metal.addColorStop(0, isPowerWire ? '#15803d' : '#64748b')
+  metal.addColorStop(
+    0,
+    isPowerWire ? '#15803d' : isPierce ? '#a16207' : '#64748b',
+  )
   metal.addColorStop(0.48, '#f8fafc')
-  metal.addColorStop(1, isPowerWire ? '#166534' : '#475569')
+  metal.addColorStop(
+    1,
+    isPowerWire ? '#166534' : isPierce ? '#854d0e' : '#475569',
+  )
   ctx.fillStyle = metal
   ctx.strokeStyle = '#1e293b'
   ctx.lineWidth = 1.5
@@ -835,13 +852,13 @@ function drawHarpoon(ctx: CanvasRenderingContext2D, harpoon: Harpoon) {
   ctx.restore()
 }
 
-function drawBall(ctx: CanvasRenderingContext2D, ball: Ball) {
+function drawBall(ctx: CanvasRenderingContext2D, ball: Ball, time = 0) {
   const r = LEVEL_RADIUS[ball.level]
-  const color = BALL_COLORS[ball.level]
+  const color = ball.golden ? '#facc15' : BALL_COLORS[ball.level]
 
   ctx.save()
   ctx.shadowColor = color
-  ctx.shadowBlur = 12
+  ctx.shadowBlur = ball.golden ? 20 : 12
   const gradient = ctx.createRadialGradient(
     ball.x - r * 0.35,
     ball.y - r * 0.35,
@@ -853,15 +870,28 @@ function drawBall(ctx: CanvasRenderingContext2D, ball: Ball) {
   gradient.addColorStop(0, '#ffffff')
   gradient.addColorStop(0.18, color)
   gradient.addColorStop(0.72, color)
-  gradient.addColorStop(1, '#020617')
+  gradient.addColorStop(1, ball.golden ? '#78350f' : '#020617')
 
   ctx.beginPath()
   ctx.arc(ball.x, ball.y, r, 0, Math.PI * 2)
   ctx.fillStyle = gradient
   ctx.fill()
   ctx.lineWidth = 2.5
-  ctx.strokeStyle = '#020617'
+  ctx.strokeStyle = ball.golden ? '#fde68a' : '#020617'
   ctx.stroke()
+
+  if (ball.golden) {
+    // A slowly rotating dashed ring marks the ball as a bonus target from
+    // a glance, distinct from the shadow/stroke every ball already has.
+    ctx.translate(ball.x, ball.y)
+    ctx.rotate((time / 700) % (Math.PI * 2))
+    ctx.setLineDash([4, 5])
+    ctx.lineWidth = 1.5
+    ctx.strokeStyle = '#fef9c3'
+    ctx.beginPath()
+    ctx.arc(0, 0, r + 5, 0, Math.PI * 2)
+    ctx.stroke()
+  }
   ctx.restore()
 }
 
@@ -883,6 +913,9 @@ function drawItem(ctx: CanvasRenderingContext2D, item: Item) {
   ctx.stroke()
 
   ctx.shadowBlur = 5
+  // Icon glyphs are hand-drawn at fixed coordinates sized for the old
+  // ITEM_RADIUS (16) — scale them up to match the larger pickup circle.
+  ctx.scale(ITEM_RADIUS / 16, ITEM_RADIUS / 16)
   drawFallingItemIcon(ctx, item.type, color)
   ctx.restore()
 }
@@ -1321,6 +1354,7 @@ type BuffDisplay = {
   visor: number
   lockOn: number
   overdrive: number
+  pierce: number
 }
 
 const NO_BUFFS: BuffDisplay = {
@@ -1343,6 +1377,7 @@ const NO_BUFFS: BuffDisplay = {
   visor: 0,
   lockOn: 0,
   overdrive: 0,
+  pierce: 0,
 }
 
 function GamePlay({
@@ -1359,6 +1394,21 @@ function GamePlay({
   const terrain = getStageTerrain(stageIndex)
   const portalPairs = useMemo(() => getStagePortals(stageIndex), [stageIndex])
   const stageCurrent = useMemo(() => getStageCurrent(stageIndex), [stageIndex])
+  // Breeze (World Tour II) and current (The Trench) never overlap in
+  // range, so their windAx contributions can just be summed — whichever
+  // one applies to this stage, the other is always 0.
+  const stageBreeze = useMemo(() => getStageBreeze(stageIndex), [stageIndex])
+  // Chaos Rift replays the current (never overlapping stage 21-80's
+  // windAx sources) and fire zones (never overlapping Hell's 80-89) at
+  // higher intensity, so both can be summed/merged the same way.
+  const stageChaosCurrent = useMemo(
+    () => getChaosRiftCurrent(stageIndex),
+    [stageIndex],
+  )
+  const stageChaosFireZones = useMemo(
+    () => getChaosRiftFireZones(stageIndex),
+    [stageIndex],
+  )
   // Gravity wells, nebula fields, and vortices are all the same underlying
   // hazard (one or more fixed pull points) — nebula fields are just two
   // weaker wells, vortices add spin — and none of the three ranges overlap,
@@ -1448,6 +1498,7 @@ function GamePlay({
   const visorUntilRef = useRef(0)
   const lockOnUntilRef = useRef(0)
   const overdriveUntilRef = useRef(0)
+  const pierceUntilRef = useRef(0)
   const barrierCountRef = useRef(0)
   const portalCooldownsRef = useRef(new Map<number, number>())
   const buffsDisplayRef = useRef<BuffDisplay>(NO_BUFFS)
@@ -1472,7 +1523,12 @@ function GamePlay({
 
   const resetStageState = useCallback(
     (restoreScore: boolean) => {
-      ballsRef.current = createStage(stageIndex)
+      // Golden Ball: a small universal chance for a stage's starting balls
+      // to be worth a bonus — rolled once here, not inherited by split
+      // children, so it stays a one-shot moment rather than a chain.
+      ballsRef.current = createStage(stageIndex).map((ball) =>
+        Math.random() < GOLDEN_BALL_CHANCE ? { ...ball, golden: true } : ball,
+      )
       harpoonsRef.current = []
       itemsRef.current = []
       hpRef.current = MAX_HP
@@ -1500,6 +1556,7 @@ function GamePlay({
       visorUntilRef.current = 0
       lockOnUntilRef.current = 0
       overdriveUntilRef.current = 0
+      pierceUntilRef.current = 0
       barrierCountRef.current = 0
       portalCooldownsRef.current.clear()
       playerXRef.current = CANVAS_WIDTH / 2
@@ -1585,6 +1642,7 @@ function GamePlay({
     visorUntilRef.current += pausedFor
     lockOnUntilRef.current += pausedFor
     overdriveUntilRef.current += pausedFor
+    pierceUntilRef.current += pausedFor
     lastHitAtRef.current += pausedFor
     harpoonsRef.current = harpoonsRef.current.map((harpoon) => ({
       ...harpoon,
@@ -1857,6 +1915,7 @@ function GamePlay({
           const isVisorActive = time < visorUntilRef.current
           const isLockOnActive = time < lockOnUntilRef.current
           const isOverdriveActive = time < overdriveUntilRef.current
+          const isPierceActive = time < pierceUntilRef.current
           const isSolarFlareActive =
             getSolarFlareState(solarFlare, time) === 'active'
           const playerSpeed =
@@ -1872,7 +1931,9 @@ function GamePlay({
               : MAX_HARPOONS_DEFAULT
           const windAx = isStabilizerActive
             ? 0
-            : getCurrentWindAx(stageCurrent, time)
+            : getCurrentWindAx(stageCurrent, time) +
+              getBreezeWindAx(stageBreeze, time) +
+              getCurrentWindAx(stageChaosCurrent, time)
           const overdriveWellsNow = overdriveBaseWells
             ? getOverdriveWellsAtTime(overdriveBaseWells, stageIndex, time)
             : null
@@ -1976,7 +2037,11 @@ function GamePlay({
             // landing. Once harpoons are full and no shot is available, the
             // target goes back to being a real threat like anything else.)
             const canEngageTarget = harpoonsRef.current.length < maxHarpoons
-            const fireZoneDangers: DangerZone[] = (fireZones ?? [])
+            const fireZoneDangers: DangerZone[] = (
+              fireZones ??
+              stageChaosFireZones ??
+              []
+            )
               .filter((zone) => getFireZoneState(zone, time) !== 'dormant')
               .map((zone) => ({
                 x: zone.x + zone.width / 2,
@@ -2121,7 +2186,11 @@ function GamePlay({
                   x: playerXRef.current,
                   y: playerYRef.current,
                   baseY: playerYRef.current,
-                  kind: isVulcanActive ? 'vulcan' : 'normal',
+                  kind: isVulcanActive
+                    ? 'vulcan'
+                    : isPierceActive
+                      ? 'pierce'
+                      : 'normal',
                 }
             harpoonsRef.current = [...harpoonsRef.current, newHarpoon]
             lastFireAtRef.current = time
@@ -2139,6 +2208,7 @@ function GamePlay({
               if (harpoon.kind === 'powerWire') {
                 return (harpoon.expiresAt ?? 0) > time
               }
+              if (harpoon.kind === 'pierce') return harpoon.y > 0
               return (
                 harpoon.y > 0 &&
                 !harpoonHitsObstacle(harpoon.x, harpoon.y, terrain.platforms)
@@ -2234,7 +2304,8 @@ function GamePlay({
                 SCORE_BY_LEVEL[hitBall.level] *
                   (1 + comboRef.current * 0.1) *
                   (isNovaSurgeActive ? NOVA_SURGE_MULTIPLIER : 1) *
-                  (isOverdriveActive ? OVERDRIVE_SCORE_MULTIPLIER : 1),
+                  (isOverdriveActive ? OVERDRIVE_SCORE_MULTIPLIER : 1) *
+                  (hitBall.golden ? GOLDEN_BALL_SCORE_MULTIPLIER : 1),
               )
               scoreRef.current = addToTotalScore(scoreRef.current, gained)
               setScore(scoreRef.current)
@@ -2243,16 +2314,17 @@ function GamePlay({
                 particlesRef.current,
                 hitBall.x,
                 hitBall.y,
-                BALL_COLORS[hitBall.level],
+                hitBall.golden ? '#facc15' : BALL_COLORS[hitBall.level],
               )
               playHitSound(hitBall.level)
               if (settings.vibration) navigator.vibrate?.(18)
               popupsRef.current.push({
                 x: hitBall.x,
                 y: hitBall.y,
-                text: `+${gained}`,
+                text: hitBall.golden ? `GOLDEN +${gained}` : `+${gained}`,
                 life: 700,
                 maxLife: 700,
+                color: hitBall.golden ? '#facc15' : undefined,
               })
 
               ballsRef.current = [
@@ -2288,16 +2360,17 @@ function GamePlay({
             !isOverdriveActive &&
             time >= invulnUntilRef.current
           ) {
+            const isInActiveFireZone = (zone: FireZone) => {
+              if (getFireZoneState(zone, time) !== 'active') return false
+              return (
+                playerXRef.current + PLAYER_WIDTH / 2 > zone.x &&
+                playerXRef.current - PLAYER_WIDTH / 2 < zone.x + zone.width
+              )
+            }
             const hitByFireZone =
               !isFireproofActive &&
-              (fireZones?.some((zone) => {
-                if (getFireZoneState(zone, time) !== 'active') return false
-                return (
-                  playerXRef.current + PLAYER_WIDTH / 2 > zone.x &&
-                  playerXRef.current - PLAYER_WIDTH / 2 < zone.x + zone.width
-                )
-              }) ??
-                false)
+              ((fireZones?.some(isInActiveFireZone) ?? false) ||
+                (stageChaosFireZones?.some(isInActiveFireZone) ?? false))
             const hitByAcidRain =
               !isUmbrellaActive &&
               (acidRainZones?.some((zone) => {
@@ -2494,6 +2567,9 @@ function GamePlay({
               case 'overdrive':
                 overdriveUntilRef.current = time + OVERDRIVE_DURATION_MS
                 break
+              case 'pierce':
+                pierceUntilRef.current = time + PIERCE_DURATION_MS
+                break
               case 'shockwave': {
                 let shockwaveGained = 0
                 const shockwaveChildren: Ball[] = []
@@ -2502,21 +2578,23 @@ function GamePlay({
                     particlesRef.current,
                     b.x,
                     b.y,
-                    BALL_COLORS[b.level],
+                    b.golden ? '#facc15' : BALL_COLORS[b.level],
                   )
                   const gained = Math.round(
                     SCORE_BY_LEVEL[b.level] *
                       (1 + comboRef.current * 0.1) *
                       (isNovaSurgeActive ? NOVA_SURGE_MULTIPLIER : 1) *
-                      (isOverdriveActive ? OVERDRIVE_SCORE_MULTIPLIER : 1),
+                      (isOverdriveActive ? OVERDRIVE_SCORE_MULTIPLIER : 1) *
+                      (b.golden ? GOLDEN_BALL_SCORE_MULTIPLIER : 1),
                   )
                   shockwaveGained += gained
                   popupsRef.current.push({
                     x: b.x,
                     y: b.y,
-                    text: `+${gained}`,
+                    text: b.golden ? `GOLDEN +${gained}` : `+${gained}`,
                     life: 700,
                     maxLife: 700,
+                    color: b.golden ? '#facc15' : undefined,
                   })
                   shockwaveChildren.push(...splitBall(b, nextId))
                 }
@@ -2604,6 +2682,10 @@ function GamePlay({
             0,
             Math.ceil((overdriveUntilRef.current - time) / 1000),
           )
+          const pierceSec = Math.max(
+            0,
+            Math.ceil((pierceUntilRef.current - time) / 1000),
+          )
           const barrierCount = barrierCountRef.current
           const prevBuffs = buffsDisplayRef.current
           if (
@@ -2625,6 +2707,7 @@ function GamePlay({
             prevBuffs.visor !== visorSec ||
             prevBuffs.lockOn !== lockOnSec ||
             prevBuffs.overdrive !== overdriveSec ||
+            prevBuffs.pierce !== pierceSec ||
             prevBuffs.barrier !== barrierCount
           ) {
             const nextBuffs: BuffDisplay = {
@@ -2646,6 +2729,7 @@ function GamePlay({
               visor: visorSec,
               lockOn: lockOnSec,
               overdrive: overdriveSec,
+              pierce: pierceSec,
               barrier: barrierCount,
             }
             buffsDisplayRef.current = nextBuffs
@@ -2711,6 +2795,9 @@ function GamePlay({
       if (stageCurrent) {
         drawCurrentFlow(ctx, getCurrentWindAx(stageCurrent, time), time)
       }
+      if (stageBreeze) {
+        drawCurrentFlow(ctx, getBreezeWindAx(stageBreeze, time), time)
+      }
       if (gravityWell) {
         const wells = Array.isArray(gravityWell) ? gravityWell : [gravityWell]
         for (const well of wells) drawGravityWell(ctx, well, time)
@@ -2722,6 +2809,10 @@ function GamePlay({
       }
       if (iceWind) drawIceGusts(ctx, getIceWindPush(iceWind, time), time)
       if (fireZones) drawFireZones(ctx, fireZones, time)
+      if (stageChaosFireZones) drawFireZones(ctx, stageChaosFireZones, time)
+      if (stageChaosCurrent) {
+        drawCurrentFlow(ctx, getCurrentWindAx(stageChaosCurrent, time), time)
+      }
       if (acidRainZones) drawAcidRain(ctx, acidRainZones, time)
       for (const platform of terrain.platforms) drawObstacle(ctx, platform)
       for (const pair of portalPairs) {
@@ -2734,7 +2825,7 @@ function GamePlay({
       }
 
       for (const b of ballsRef.current) {
-        drawBall(ctx, b)
+        drawBall(ctx, b, time)
       }
 
       for (const item of itemsRef.current) {
@@ -2835,6 +2926,9 @@ function GamePlay({
     terrain,
     portalPairs,
     stageCurrent,
+    stageBreeze,
+    stageChaosCurrent,
+    stageChaosFireZones,
     gravityWell,
     fireZones,
     gravityScale,
@@ -2869,6 +2963,7 @@ function GamePlay({
         {portalPairs.length > 0 && (
           <span className="hud-hazard">Portals ×{portalPairs.length}</span>
         )}
+        {stageBreeze && <span className="hud-hazard">Breeze</span>}
         {stageCurrent && <span className="hud-hazard">Current</span>}
         {gravityWell && (
           <span className="hud-hazard">
@@ -2880,6 +2975,9 @@ function GamePlay({
           </span>
         )}
         {fireZones && <span className="hud-hazard">Fire Zones</span>}
+        {(stageChaosCurrent || stageChaosFireZones) && (
+          <span className="hud-hazard">Chaos Rift</span>
+        )}
         {gravityScale < 1 && <span className="hud-hazard">Low Gravity</span>}
         {acidRainZones && <span className="hud-hazard">Acid Rain</span>}
         {iceWind && <span className="hud-hazard">Ice Wind</span>}
@@ -3085,6 +3183,7 @@ function GamePlay({
                 buffs.visor === 0 &&
                 buffs.lockOn === 0 &&
                 buffs.overdrive === 0 &&
+                buffs.pierce === 0 &&
                 buffs.barrier === 0 && <li>None</li>}
             </ul>
           </div>

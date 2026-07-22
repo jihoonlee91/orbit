@@ -112,3 +112,31 @@ current/gravity-well scope):
   (`OVERDRIVE_SCORE_MULTIPLIER`) that stacks with Nova Surge if both
   happen to be active. Rarer than the other four — weight 7, since it
   does substantially more. See `phase5_13.md` for the full mechanic.
+
+### Correction: hazard-counter items are scoped to their hazard's block, not "forever after"
+
+The "introduced once, stays in the pool forever after" description above
+(and the equivalent note on Stabilizer/Fireproof/Anchor earlier in this
+doc) was wrong in practice: Fireproof kept dropping in Toxic Marsh (101+),
+Umbrella in Frozen Summit (111+), and so on — each counter item was live
+long after its hazard had stopped being active, which just wastes pool
+weight on an item with nothing to counter. `getItemWeights` in
+`constants.ts` now bounds each one to exactly its hazard's stage range
+(Stabilizer: 41-80, Fireproof: 81-90, Anchor: 91-100, Umbrella: 101-110,
+Grip Boots: 111-120, Visor: 121-130, Lock-On: 131-140). Nova Surge and
+Overdrive are unaffected — Nova Surge is a pure score reward with no
+hazard to scope to, and Overdrive's range already runs to `STAGE_COUNT`.
+
+## World Tour II item: Piercer
+
+A new general-purpose item, same "rolled into the base pool from stage 1
+onward" tier as Magnet/Combo Lock/Shockwave above:
+
+- **Piercer** (`PIERCE_DURATION_MS` = 8s): for the duration, fired
+  harpoons (kind `'pierce'`) pass through obstacle platforms instead of
+  being destroyed on contact — the obstacle-hit filter in `GamePlay.tsx`'s
+  harpoon-update loop skips `harpoonHitsObstacle` for that kind, so the
+  harpoon keeps traveling until it hits a ball or leaves the top of the
+  screen. Doesn't affect Power Harpoon (already ignores obstacles by
+  design) or change harpoon speed. Weight 10 (same tier as most timed
+  buffs).

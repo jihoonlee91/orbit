@@ -25,6 +25,7 @@ export const ITEM_COLORS: Record<ItemType, string> = {
   visor: '#fbbf24',
   lockOn: '#a855f7',
   overdrive: '#ef4444',
+  pierce: '#eab308',
 }
 
 export const ITEM_TITLES: Record<ItemType, string> = {
@@ -52,6 +53,7 @@ export const ITEM_TITLES: Record<ItemType, string> = {
   visor: 'Visor',
   lockOn: 'Lock-On',
   overdrive: 'Overdrive',
+  pierce: 'Piercer',
 }
 
 export const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
@@ -80,6 +82,7 @@ export const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
   visor: '8초 동안 태양 플레어의 눈부심에도 이동 속도가 느려지지 않습니다.',
   lockOn: '8초 동안 공의 양자 요동(순간이동)이 발생하지 않습니다.',
   overdrive: '8초 동안 모든 hazard 피해를 막고 점수를 1.5배로 획득합니다.',
+  pierce: '8초 동안 작살이 장애물을 뚫고 계속 날아갑니다.',
 }
 
 function traceShield(ctx: CanvasRenderingContext2D, scale = 1) {
@@ -496,6 +499,26 @@ export function drawFallingItemIcon(
       ctx.lineTo(-2, 9)
       ctx.lineTo(6, -2)
       ctx.lineTo(1, -2)
+      ctx.closePath()
+      ctx.fill()
+      break
+    case 'pierce':
+      ctx.fillStyle = '#475569'
+      ctx.fillRect(-11, -8, 7, 16)
+      ctx.fillRect(4, -8, 7, 16)
+      ctx.strokeRect(-11, -8, 7, 16)
+      ctx.strokeRect(4, -8, 7, 16)
+      ctx.strokeStyle = color
+      ctx.lineWidth = 3
+      ctx.beginPath()
+      ctx.moveTo(-13, 0)
+      ctx.lineTo(10, 0)
+      ctx.stroke()
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.moveTo(13, 0)
+      ctx.lineTo(6, -5)
+      ctx.lineTo(6, 5)
       ctx.closePath()
       ctx.fill()
       break

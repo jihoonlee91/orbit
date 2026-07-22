@@ -31,7 +31,7 @@ export const SCORE_BY_LEVEL = [300, 150, 100]
 
 export const COMBO_WINDOW_MS = 1500
 
-export const STAGE_COUNT = 150
+export const STAGE_COUNT = 200
 export const STAGE_TIME_SECONDS = 90
 export const TIME_BONUS_PER_SECOND = 10
 
@@ -220,6 +220,57 @@ export const STAGE_OBSTACLES: readonly Obstacle[] = [
   { x: 519, y: 216, width: 231, height: 18 },
   { x: 535, y: 310, width: 157, height: 18 },
   { x: 225, y: 215, width: 186, height: 18 },
+  // --- Chaos Rift (stages 151-200) ---
+  { x: 392, y: 363, width: 198, height: 18 },
+  { x: 593, y: 213, width: 172, height: 18 },
+  { x: 617, y: 363, width: 205, height: 18 },
+  { x: 744, y: 309, width: 237, height: 18 },
+  { x: 504, y: 344, width: 162, height: 18 },
+  { x: 64, y: 318, width: 179, height: 18 },
+  { x: 333, y: 181, width: 196, height: 18 },
+  { x: 537, y: 363, width: 173, height: 18 },
+  { x: 151, y: 206, width: 166, height: 18 },
+  { x: 755, y: 225, width: 257, height: 18 },
+  { x: 205, y: 339, width: 249, height: 18 },
+  { x: 142, y: 344, width: 210, height: 18 },
+  { x: 754, y: 361, width: 218, height: 18 },
+  { x: 548, y: 173, width: 141, height: 18 },
+  { x: 478, y: 313, width: 209, height: 18 },
+  { x: 696, y: 155, width: 155, height: 18 },
+  { x: 520, y: 206, width: 210, height: 18 },
+  { x: 628, y: 347, width: 177, height: 18 },
+  { x: 133, y: 226, width: 236, height: 18 },
+  { x: 507, y: 281, width: 161, height: 18 },
+  { x: 145, y: 278, width: 243, height: 18 },
+  { x: 332, y: 223, width: 195, height: 18 },
+  { x: 623, y: 238, width: 158, height: 18 },
+  { x: 179, y: 356, width: 212, height: 18 },
+  { x: 211, y: 197, width: 185, height: 18 },
+  { x: 589, y: 300, width: 234, height: 18 },
+  { x: 518, y: 239, width: 165, height: 18 },
+  { x: 521, y: 250, width: 235, height: 18 },
+  { x: 537, y: 243, width: 146, height: 18 },
+  { x: 171, y: 157, width: 185, height: 18 },
+  { x: 513, y: 151, width: 143, height: 18 },
+  { x: 161, y: 215, width: 157, height: 18 },
+  { x: 734, y: 257, width: 142, height: 18 },
+  { x: 378, y: 335, width: 200, height: 18 },
+  { x: 160, y: 251, width: 181, height: 18 },
+  { x: 218, y: 256, width: 181, height: 18 },
+  { x: 672, y: 253, width: 255, height: 18 },
+  { x: 601, y: 153, width: 211, height: 18 },
+  { x: 682, y: 286, width: 224, height: 18 },
+  { x: 515, y: 243, width: 250, height: 18 },
+  { x: 367, y: 198, width: 165, height: 18 },
+  { x: 530, y: 180, width: 202, height: 18 },
+  { x: 118, y: 221, width: 207, height: 18 },
+  { x: 249, y: 215, width: 250, height: 18 },
+  { x: 337, y: 274, width: 235, height: 18 },
+  { x: 90, y: 185, width: 221, height: 18 },
+  { x: 103, y: 241, width: 205, height: 18 },
+  { x: 710, y: 365, width: 199, height: 18 },
+  { x: 380, y: 187, width: 248, height: 18 },
+  { x: 419, y: 184, width: 188, height: 18 },
 ]
 
 export function getStageObstacle(stageIndex: number): Obstacle {
@@ -236,7 +287,7 @@ export const OBSTACLE_X = DEFAULT_OBSTACLE.x
 export const OBSTACLE_Y = DEFAULT_OBSTACLE.y
 
 // --- Power-up items ---
-export const ITEM_RADIUS = 16
+export const ITEM_RADIUS = 20
 export const ITEM_GRAVITY = 260
 // Fraction of the remaining horizontal gap to the player an item closes
 // per second while Magnet is active — an exponential approach rather than
@@ -270,6 +321,7 @@ export const ITEM_WEIGHTS: [ItemType, number][] = [
   ['magnet', 10],
   ['comboLock', 8],
   ['shockwave', 6],
+  ['pierce', 10],
 ]
 
 // Vulcan (rapid-fire) was originally always in the pool, but it trivializes
@@ -277,46 +329,84 @@ export const ITEM_WEIGHTS: [ItemType, number][] = [
 // range World Tour II covers, then steps aside for the harder stages after.
 const VULCAN_END_STAGE = 30
 
-// Stabilizer only does anything from stage 41 (0-indexed 40) onward, where
-// the current/gravity-well/nebula-field/vortex hazards begin — hardcoded
-// here rather than imported from currents.ts/gravityWells.ts/nebulae.ts/
-// vortices.ts to avoid a circular import (all of those already import from
-// this file).
+// Breeze (World Tour II, stages 21-30) is weak enough that no counter item
+// is warranted — it's introduced before Stabilizer even enters the pool
+// (stage 40), so it's intentionally left unscoped here.
+
+// Stabilizer neutralizes the current/gravity-well/nebula-field/vortex
+// hazards, which run back-to-back across stages 41-80 (0-indexed 40-79) —
+// hardcoded here rather than imported from currents.ts/gravityWells.ts/
+// nebulae.ts/vortices.ts to avoid a circular import (all of those already
+// import from this file). It only drops in that range: past stage 80 none
+// of those four hazards are active anymore, so it would just be dead
+// weight in the pool. It reappears a second time for Chaos Rift
+// (stages 151-200), which replays the lateral current at higher intensity
+// alongside the fire zones below — same reasoning, hardcoded to avoid
+// importing from chaosRift.ts.
 const STABILIZER_START_STAGE = 40
+const STABILIZER_END_STAGE = 80
+const STABILIZER_CHAOS_RIFT_START_STAGE = 150
 
 // Nova Surge (score multiplier) is introduced at Cosmic Frontier (stage 61,
-// 0-indexed 60) and stays in the pool for every stage after, same pattern
-// as Stabilizer.
+// 0-indexed 60) and stays in the pool for every stage after — unlike the
+// hazard-counter items below, it's a pure reward with no hazard to scope it
+// to, so "forever after" is correct here.
 const NOVA_SURGE_START_STAGE = 60
 
-// Fireproof neutralizes Hell's fire zones (stage 81, 0-indexed 80 onward)
-// and Anchor neutralizes Void's low gravity (stage 91, 0-indexed 90
-// onward) — same "introduced once, stays in the pool forever after"
-// pattern as Stabilizer/Nova Surge.
+// Each of these neutralizes exactly one hazard block and should only drop
+// while that block is active — Fireproof for Hell's fire zones (81-90),
+// Anchor for Void's low gravity (91-100), Umbrella for Toxic Marsh's acid
+// rain (101-110), Grip Boots for Frozen Summit's ice wind (111-120), Visor
+// for Solar Storm's flares (121-130), Lock-On for Quantum Rift's jitter
+// (131-140). Bounded ranges, not "start onward", so e.g. Fireproof stops
+// appearing once stage 101 (Toxic Marsh) begins — it does nothing there.
+// Fireproof also reappears for Chaos Rift (stages 151-200), which replays
+// Hell's fire zones at higher intensity alongside the current above.
 const FIREPROOF_START_STAGE = 80
+const FIREPROOF_END_STAGE = 90
+const FIREPROOF_CHAOS_RIFT_START_STAGE = 150
 const ANCHOR_START_STAGE = 90
-
-// Same "introduced once, stays in the pool forever after" pattern for the
-// five 101-150 hazard-counter items — hardcoded start stages (not imported
-// from acidRain.ts/iceWinds.ts/etc.) for the same circular-import reason as
-// Stabilizer/Nova Surge/Fireproof/Anchor above.
+const ANCHOR_END_STAGE = 100
 const UMBRELLA_START_STAGE = 100
+const UMBRELLA_END_STAGE = 110
 const GRIP_BOOTS_START_STAGE = 110
+const GRIP_BOOTS_END_STAGE = 120
 const VISOR_START_STAGE = 120
+const VISOR_END_STAGE = 130
 const LOCK_ON_START_STAGE = 130
+const LOCK_ON_END_STAGE = 140
+
+// Overdrive was Overdrive Nexus's capstone (stages 141-150) — its full-hit
+// immunity (see the invulnerability gate in GamePlay.tsx) happens to also
+// neutralize Chaos Rift's fire-zone damage, so unlike Stabilizer/Fireproof
+// it needs no second window: "start onward" already covers both blocks.
 const OVERDRIVE_ITEM_START_STAGE = 140
 
 export function getItemWeights(stageIndex: number): [ItemType, number][] {
   const weights: [ItemType, number][] = [...ITEM_WEIGHTS]
   if (stageIndex < VULCAN_END_STAGE) weights.push(['vulcan', 10])
-  if (stageIndex >= STABILIZER_START_STAGE) weights.push(['stabilizer', 12])
+  if (
+    (stageIndex >= STABILIZER_START_STAGE &&
+      stageIndex < STABILIZER_END_STAGE) ||
+    stageIndex >= STABILIZER_CHAOS_RIFT_START_STAGE
+  )
+    weights.push(['stabilizer', 12])
   if (stageIndex >= NOVA_SURGE_START_STAGE) weights.push(['novaSurge', 9])
-  if (stageIndex >= FIREPROOF_START_STAGE) weights.push(['fireproof', 10])
-  if (stageIndex >= ANCHOR_START_STAGE) weights.push(['anchor', 10])
-  if (stageIndex >= UMBRELLA_START_STAGE) weights.push(['umbrella', 10])
-  if (stageIndex >= GRIP_BOOTS_START_STAGE) weights.push(['gripBoots', 10])
-  if (stageIndex >= VISOR_START_STAGE) weights.push(['visor', 10])
-  if (stageIndex >= LOCK_ON_START_STAGE) weights.push(['lockOn', 10])
+  if (
+    (stageIndex >= FIREPROOF_START_STAGE && stageIndex < FIREPROOF_END_STAGE) ||
+    stageIndex >= FIREPROOF_CHAOS_RIFT_START_STAGE
+  )
+    weights.push(['fireproof', 10])
+  if (stageIndex >= ANCHOR_START_STAGE && stageIndex < ANCHOR_END_STAGE)
+    weights.push(['anchor', 10])
+  if (stageIndex >= UMBRELLA_START_STAGE && stageIndex < UMBRELLA_END_STAGE)
+    weights.push(['umbrella', 10])
+  if (stageIndex >= GRIP_BOOTS_START_STAGE && stageIndex < GRIP_BOOTS_END_STAGE)
+    weights.push(['gripBoots', 10])
+  if (stageIndex >= VISOR_START_STAGE && stageIndex < VISOR_END_STAGE)
+    weights.push(['visor', 10])
+  if (stageIndex >= LOCK_ON_START_STAGE && stageIndex < LOCK_ON_END_STAGE)
+    weights.push(['lockOn', 10])
   // Overdrive is the finale's capstone reward — rarer than the other
   // hazard-counter items since it does much more (immunity + score boost).
   if (stageIndex >= OVERDRIVE_ITEM_START_STAGE) weights.push(['overdrive', 7])
@@ -353,3 +443,13 @@ export const VISOR_DURATION_MS = 8000
 export const LOCK_ON_DURATION_MS = 8000
 export const OVERDRIVE_DURATION_MS = 8000
 export const OVERDRIVE_SCORE_MULTIPLIER = 1.5
+export const PIERCE_DURATION_MS = 8000
+
+// Golden Ball: a small universal chance for a stage's initial balls to
+// spawn golden instead of their normal color. Popping one (at any size)
+// pays out a flat score multiplier plus a distinctive gold particle burst —
+// a bit of per-stage excitement that doesn't depend on stage number or any
+// hazard, unlike every item above. Split children never inherit the golden
+// flag, so the bonus is a one-shot moment rather than a chain.
+export const GOLDEN_BALL_CHANCE = 0.12
+export const GOLDEN_BALL_SCORE_MULTIPLIER = 3

@@ -1,3 +1,4 @@
+import { BREEZE_START_STAGE } from './breeze'
 import { PORTAL_START_STAGE } from './portals'
 import { CURRENT_START_STAGE } from './currents'
 import { GRAVITY_WELL_START_STAGE } from './gravityWells'
@@ -10,6 +11,7 @@ import { ICE_WIND_START_STAGE } from './iceWinds'
 import { SOLAR_FLARE_START_STAGE } from './solarFlares'
 import { QUANTUM_RIFT_START_STAGE } from './quantumRifts'
 import { OVERDRIVE_START_STAGE } from './overdriveWells'
+import { CHAOS_RIFT_START_STAGE } from './chaosRift'
 
 export type HazardEntry = {
   id: string
@@ -20,6 +22,13 @@ export type HazardEntry = {
 }
 
 export const HAZARD_CATALOG: readonly HazardEntry[] = [
+  {
+    id: 'breeze',
+    name: 'Gentle Breeze',
+    startStage: BREEZE_START_STAGE,
+    description:
+      '약한 바람이 공을 좌우로 살짝 밀어냅니다. 뒤이어 나오는 해류의 예고편 같은 순한 맛입니다.',
+  },
   {
     id: 'portals',
     name: 'Dimension Portals',
@@ -103,6 +112,13 @@ export const HAZARD_CATALOG: readonly HazardEntry[] = [
     startStage: OVERDRIVE_START_STAGE,
     description:
       '두 개의 중력점이 주기적으로 당기고 미는 극성을 뒤바꿉니다. Overdrive 아이템으로 잠시 모든 hazard를 무력화하고 점수를 더 얻을 수 있습니다.',
+  },
+  {
+    id: 'chaosRift',
+    name: 'Chaos Rift',
+    startStage: CHAOS_RIFT_START_STAGE,
+    description:
+      '해류와 화염 지대가 그동안 나온 것보다 더 강하게 동시에 몰아칩니다. Stabilizer로 해류를, Fireproof나 Overdrive로 화염 피해를 막을 수 있습니다.',
   },
 ]
 
