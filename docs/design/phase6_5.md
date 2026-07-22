@@ -52,6 +52,8 @@
   silhouette, seeded details, and hazard-safe open play area. No stage
   relies on modulo-reused art at runtime; missing or loading images retain
   a synchronous Canvas fallback.
+- Each finale stage also receives a dedicated Chaos Rift map name so the
+  stage map's label and illustration remain a unique pair through stage 200.
 - Batch identities are 151-160 fractured crimson/cobalt gateway, 161-170
   storm-torn floating citadel, 171-180 molten cosmic maelstrom, 181-190
   prismatic reality collapse, and 191-200 white-hot final singularity.
