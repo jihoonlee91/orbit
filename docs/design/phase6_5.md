@@ -31,7 +31,7 @@
   exactly what's needed here. **Overdrive**'s existing full-hit-immunity
   (stages 141+) also happens to block Chaos Rift's fire damage, with no
   changes required.
-- Backgrounds/obstacles/stage names: stages 151-200 reuse existing
+- Legacy background behavior before the illustrated finale: stages 151-200 reused existing
   content via the pre-existing modulo wraparound in `drawBackground`,
   `getStageObstacle`, and the `STAGE_NAMES[i % STAGE_NAMES.length]` call
   sites — no new chapter art was authored for this pass (out of scope;
@@ -41,6 +41,20 @@
   it's a reused plate. 50 new procedurally-generated `STAGE_OBSTACLES`
   entries were added (matching the existing random-looking style) so
   Chaos Rift at least has its own platform layouts.
+
+### Illustrated Chaos Rift revision
+
+- Stages 151-200 extend the illustrated-background system from
+  `phase6_4.md`. Five 16:9 Chaos Rift chapter plates establish a distinct
+  art direction for each ten-stage batch, and every individual stage is
+  exported as its own optimized 960x540 WebP.
+- The final image composites its chapter plate with that stage's Canvas
+  silhouette, seeded details, and hazard-safe open play area. No stage
+  relies on modulo-reused art at runtime; missing or loading images retain
+  a synchronous Canvas fallback.
+- Batch identities are 151-160 fractured crimson/cobalt gateway, 161-170
+  storm-torn floating citadel, 171-180 molten cosmic maelstrom, 181-190
+  prismatic reality collapse, and 191-200 white-hot final singularity.
 
 ## New mechanic: Golden Ball (all stages)
 
@@ -75,6 +89,14 @@
   expectations for the new stage count and item-pool windows
 
 ## Verification
+
+Illustrated-background files:
+
+- `src/assets/backgrounds/`: five Chaos Rift chapter plates
+- `src/assets/backgrounds/illustrated/`: dedicated `stage151.webp`
+  through `stage200.webp` runtime backgrounds
+- `src/game/backgrounds.ts`: chapter fallbacks and dedicated image
+  resolution without modulo reuse
 
 - `tsc -b`, `oxlint`, `vitest run` (188 tests), and `prettier --check`
   all pass.
