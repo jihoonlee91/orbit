@@ -92,13 +92,10 @@ function App() {
   const [whatsNewReturnTo, setWhatsNewReturnTo] = useState<Screen>('settings')
   const [countdown, setCountdown] = useState(COUNTDOWN_START)
   const [stageIndex, setStageIndex] = useState(0)
-  // Stage the current demo run began at (via "Watch AI Play" stage
-  // selection), so a game-over restarts the AI at the stage the user
-  // actually chose to watch instead of always jumping back to stage 1.
-  const [demoStartStage, setDemoStartStage] = useState(0)
-  // Bumped on every demo game over, purely to force GamePlay to remount —
-  // setStageIndex(demoStartStage) alone is a no-op (and so never resets
-  // anything) when the AI dies on the same stage it started on.
+  // Bumped on every demo game over, to force GamePlay to remount and
+  // retry the same stage it just died on (stageIndex itself is left
+  // unchanged) — a plain state update wouldn't reset anything since the
+  // index doesn't change.
   const [demoRunId, setDemoRunId] = useState(0)
   const [finalScore, setFinalScore] = useState(0)
   const [result, setResult] = useState<StageResult>('gameover')
@@ -319,7 +316,6 @@ function App() {
   const startDemoAtStage = (selectedStage: number) => {
     if (selectedStage > highestUnlockedStage) return
     setStageIndex(selectedStage)
-    setDemoStartStage(selectedStage)
     setScreen('demo')
   }
 
@@ -431,7 +427,6 @@ function App() {
   }
 
   const handleDemoGameOver = () => {
-    setStageIndex(demoStartStage)
     setDemoRunId((id) => id + 1)
   }
 
