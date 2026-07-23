@@ -225,3 +225,12 @@ A file laying out the goals for each phase.
   video file
 - Keep the intro skippable, replayable from the main menu, responsive on mobile,
   and compatible with the reduced-motion setting
+
+### Phase 6-8. Hidden True Finale (Stage 201)
+
+- Keep the original 200-stage route intact, then reveal a secret stage 201 only
+  after stage 200 is cleared
+- Give the hidden finale its own illustration, arena, ball formation, 75-second
+  clock, reward-focused item pool, and true-ending result copy
+- Cycle through four telegraphed Eclipse Protocol phases so the challenge comes
+  from adapting to mastered mechanics rather than unreadable raw speed
