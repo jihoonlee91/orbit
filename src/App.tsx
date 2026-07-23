@@ -37,6 +37,7 @@ type Screen =
   | 'stageClear'
   | 'milestone'
   | 'demo'
+  | 'demoMap'
   | 'map'
   | 'settings'
   | 'whatsNew'
@@ -55,6 +56,7 @@ const BACK_TO_MAIN_SCREENS: readonly Screen[] = [
   'settings',
   'map',
   'demo',
+  'demoMap',
   'end',
   'whatsNew',
   'glossary',
@@ -84,9 +86,13 @@ function App() {
   const [whatsNewReturnTo, setWhatsNewReturnTo] = useState<Screen>('settings')
   const [countdown, setCountdown] = useState(COUNTDOWN_START)
   const [stageIndex, setStageIndex] = useState(0)
+  // Stage the current demo run began at (via "Watch AI Play" stage
+  // selection), so a game-over restarts the AI at the stage the user
+  // actually chose to watch instead of always jumping back to stage 1.
+  const [demoStartStage, setDemoStartStage] = useState(0)
   // Bumped on every demo game over, purely to force GamePlay to remount —
-  // setStageIndex(0) alone is a no-op (and so never resets anything) when
-  // the AI dies on stage 1, since the index is already 0.
+  // setStageIndex(demoStartStage) alone is a no-op (and so never resets
+  // anything) when the AI dies on the same stage it started on.
   const [demoRunId, setDemoRunId] = useState(0)
   const [finalScore, setFinalScore] = useState(0)
   const [result, setResult] = useState<StageResult>('gameover')
@@ -304,8 +310,9 @@ function App() {
     setScreen('play')
   }, [])
 
-  const startDemo = () => {
-    setStageIndex(0)
+  const startDemoAtStage = (selectedStage: number) => {
+    setStageIndex(selectedStage)
+    setDemoStartStage(selectedStage)
     setScreen('demo')
   }
 
@@ -401,7 +408,7 @@ function App() {
   }
 
   const handleDemoGameOver = () => {
-    setStageIndex(0)
+    setStageIndex(demoStartStage)
     setDemoRunId((id) => id + 1)
   }
 
@@ -526,7 +533,7 @@ function App() {
           <button
             type="button"
             className="screen-button screen-button-secondary"
-            onClick={startDemo}
+            onClick={() => setScreen('demoMap')}
           >
             Watch AI Play
           </button>
@@ -588,6 +595,19 @@ function App() {
         onBack={() => setScreen('main')}
         onStartStage={startAtStage}
         highestUnlockedStage={highestUnlockedStage}
+      />
+    )
+  }
+
+  if (screen === 'demoMap') {
+    return (
+      <StageMap
+        title="Watch AI Play"
+        onBack={() => setScreen('main')}
+        onStartStage={startDemoAtStage}
+        // The AI can showcase any stage, not just ones the player has
+        // reached themselves.
+        highestUnlockedStage={STAGE_COUNT - 1}
       />
     )
   }
