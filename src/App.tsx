@@ -317,6 +317,7 @@ function App() {
   }, [])
 
   const startDemoAtStage = (selectedStage: number) => {
+    if (selectedStage > highestUnlockedStage) return
     setStageIndex(selectedStage)
     setDemoStartStage(selectedStage)
     setScreen('demo')
@@ -631,12 +632,7 @@ function App() {
         title="Watch AI Play"
         onBack={() => setScreen('main')}
         onStartStage={startDemoAtStage}
-        // The AI can showcase any stage, not just ones the player has
-        // reached themselves.
-        highestUnlockedStage={Math.max(
-          PUBLIC_STAGE_COUNT - 1,
-          highestUnlockedStage,
-        )}
+        highestUnlockedStage={highestUnlockedStage}
       />
     )
   }
