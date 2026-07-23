@@ -8,6 +8,7 @@ import {
   LEVEL_RADIUS,
   ITEM_GRAVITY,
   PLAYER_Y,
+  PUBLIC_STAGE_COUNT,
   STAGE_COUNT,
   STAGE_OBSTACLES,
   getStageObstacle,
@@ -82,7 +83,7 @@ describe('createStage', () => {
       )
     }
 
-    for (let stage = 1; stage < STAGE_COUNT; stage += 1) {
+    for (let stage = 1; stage < PUBLIC_STAGE_COUNT; stage += 1) {
       expect(workload(stage)).toBeGreaterThanOrEqual(workload(stage - 1))
       // Speed climbs stage over stage until it hits its intentional cap
       // (see createStage's Math.min in engine.ts), where it plateaus so
@@ -106,16 +107,33 @@ describe('createStage', () => {
     }
   })
 
+  it('gives hidden stage 201 a symmetric six-ball eclipse formation', () => {
+    const balls = createStage(STAGE_COUNT - 1)
+    expect(balls).toHaveLength(6)
+    expect(balls.every((ball) => ball.level === 2)).toBe(true)
+    expect(balls.map((ball) => ball.x)).toEqual([120, 260, 400, 560, 700, 840])
+    expect(
+      balls.every((ball, index) =>
+        index % 2 === 0 ? ball.vx > 0 : ball.vx < 0,
+      ),
+    ).toBe(true)
+  })
+
   it('floors stage time at 20 seconds instead of hitting zero or negative', () => {
-    expect(getStageTimeSeconds(STAGE_COUNT - 1)).toBe(20)
-    expect(getStageTimeSeconds(STAGE_COUNT - 1)).toBeGreaterThan(0)
+    expect(getStageTimeSeconds(PUBLIC_STAGE_COUNT - 1)).toBe(20)
+    expect(getStageTimeSeconds(PUBLIC_STAGE_COUNT - 1)).toBeGreaterThan(0)
+  })
+
+  it('gives the hidden finale a fair boss-length clock and comeback drops', () => {
+    expect(getStageTimeSeconds(STAGE_COUNT - 1)).toBe(75)
+    expect(getStageItemDropChance(STAGE_COUNT - 1)).toBe(0.22)
   })
 
   it('caps ball speed at stage 80 instead of climbing unbounded to stage 100', () => {
     const speedAt = (stageIndex: number) =>
       Math.abs(createStage(stageIndex)[0].vx)
     expect(speedAt(79)).toBe(speedAt(80))
-    expect(speedAt(79)).toBe(speedAt(STAGE_COUNT - 1))
+    expect(speedAt(79)).toBe(speedAt(PUBLIC_STAGE_COUNT - 1))
   })
 })
 

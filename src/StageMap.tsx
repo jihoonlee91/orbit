@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { CANVAS_WIDTH, CANVAS_HEIGHT, STAGE_COUNT } from './game/constants'
+import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  PUBLIC_STAGE_COUNT,
+  STAGE_COUNT,
+} from './game/constants'
 import {
   BACKGROUNDS,
   BACKGROUND_READY_EVENT,
@@ -23,6 +28,11 @@ import {
   getChaosRiftFireZones,
   getChaosRiftWells,
 } from './game/chaosRift'
+import {
+  HIDDEN_FINAL_STAGE_INDEX,
+  getVisibleStageCount,
+} from './game/hiddenFinale'
+import { getHighestUnlockedStage } from './game/progress'
 
 type ThumbnailProps = {
   stageIndex: number
@@ -80,6 +90,15 @@ function StageMap({
   const [selectedStage, setSelectedStage] = useState<number | null>(null)
   const [jumpValue, setJumpValue] = useState('')
   const currentCardRef = useRef<HTMLDivElement | null>(null)
+  const effectiveHighestUnlockedStage = Math.max(
+    getHighestUnlockedStage(),
+    currentStage ?? 0,
+    nextStage ?? 0,
+  )
+  const visibleStageCount =
+    effectiveHighestUnlockedStage >= HIDDEN_FINAL_STAGE_INDEX
+      ? getVisibleStageCount(effectiveHighestUnlockedStage)
+      : PUBLIC_STAGE_COUNT
 
   useEffect(() => {
     if (compact && currentCardRef.current) {
@@ -89,7 +108,8 @@ function StageMap({
 
   const jumpToStage = () => {
     const target = Number(jumpValue)
-    if (!Number.isInteger(target) || target < 1 || target > STAGE_COUNT) return
+    if (!Number.isInteger(target) || target < 1 || target > visibleStageCount)
+      return
     document
       .getElementById(`stage-map-card-${target - 1}`)
       ?.scrollIntoView({ block: 'center', behavior: 'smooth' })
@@ -113,9 +133,9 @@ function StageMap({
           id="stage-map-jump-input"
           type="number"
           min={1}
-          max={STAGE_COUNT}
+          max={visibleStageCount}
           value={jumpValue}
-          placeholder={`1-${STAGE_COUNT}`}
+          placeholder={`1-${visibleStageCount}`}
           onChange={(e) => setJumpValue(e.target.value)}
         />
         <button type="submit" className="screen-button screen-button-small">
@@ -125,7 +145,10 @@ function StageMap({
       {onStartStage && (
         <p className="stage-map-status">
           {selectedStage === null
-            ? `Choose a stage to start · ${highestUnlockedStage + 1} / ${STAGE_COUNT} unlocked`
+            ? `Choose a stage to start · ${Math.min(
+                highestUnlockedStage + 1,
+                visibleStageCount,
+              )} / ${visibleStageCount} unlocked`
             : `Stage ${selectedStage + 1} selected`}
         </p>
       )}
@@ -146,7 +169,7 @@ function StageMap({
         </div>
       )}
       <div className="stage-map-grid">
-        {Array.from({ length: STAGE_COUNT }, (_, i) => {
+        {Array.from({ length: visibleStageCount }, (_, i) => {
           const isCurrent = i === currentStage
           const isNext = i === nextStage
           const isCleared = currentStage !== undefined && i < currentStage
@@ -174,7 +197,7 @@ function StageMap({
           const card = (
             <div
               id={`stage-map-card-${i}`}
-              className={`stage-map-card ${isCleared ? 'stage-map-card-cleared' : ''} ${isCurrent ? 'stage-map-card-current' : ''} ${isNext ? 'stage-map-card-next' : ''} ${selectedStage === i ? 'stage-map-card-selected' : ''} ${isLocked ? 'stage-map-card-locked' : ''}`}
+              className={`stage-map-card ${isCleared ? 'stage-map-card-cleared' : ''} ${isCurrent ? 'stage-map-card-current' : ''} ${isNext ? 'stage-map-card-next' : ''} ${selectedStage === i ? 'stage-map-card-selected' : ''} ${isLocked ? 'stage-map-card-locked' : ''} ${i === HIDDEN_FINAL_STAGE_INDEX ? 'stage-map-card-hidden-finale' : ''}`}
               ref={isCurrent ? currentCardRef : undefined}
               aria-current={isCurrent ? 'step' : undefined}
             >
@@ -194,6 +217,11 @@ function StageMap({
                 {isLocked && (
                   <span className="stage-map-badge stage-map-badge-locked">
                     LOCKED
+                  </span>
+                )}
+                {i === HIDDEN_FINAL_STAGE_INDEX && (
+                  <span className="stage-map-badge stage-map-badge-hidden-finale">
+                    TRUE FINAL
                   </span>
                 )}
                 {isPortalStage && (

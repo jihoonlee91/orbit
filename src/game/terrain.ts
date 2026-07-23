@@ -10,6 +10,15 @@ export type StageTerrain = {
   platforms: readonly Obstacle[]
 }
 
+const HIDDEN_FINALE_TERRAIN: StageTerrain = {
+  platforms: [
+    { x: 380, y: 142, width: 200, height: 18 },
+    { x: 120, y: 245, width: 180, height: 18 },
+    { x: 660, y: 245, width: 180, height: 18 },
+    { x: 390, y: 350, width: 180, height: 18 },
+  ],
+}
+
 const EXTRA_PLATFORMS: readonly (readonly Obstacle[])[] = [
   [{ x: 100, y: 380, width: 220, height: 18 }],
   [{ x: 580, y: 350, width: 250, height: 18 }],
@@ -180,6 +189,7 @@ export const STAGE_TERRAINS: readonly StageTerrain[] = STAGE_OBSTACLES.map(
 )
 
 export function getStageTerrain(stageIndex: number): StageTerrain {
+  if (stageIndex === 200) return HIDDEN_FINALE_TERRAIN
   const normalizedIndex =
     ((stageIndex % STAGE_TERRAINS.length) + STAGE_TERRAINS.length) %
     STAGE_TERRAINS.length

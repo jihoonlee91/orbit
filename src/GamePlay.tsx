@@ -7,6 +7,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
+import './HiddenFinale.css'
 import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
@@ -22,6 +23,7 @@ import {
   LEVEL_RADIUS,
   SCORE_BY_LEVEL,
   COMBO_WINDOW_MS,
+  PUBLIC_STAGE_COUNT,
   STAGE_COUNT,
   getStageTimeSeconds,
   getStageItemDropChance,
@@ -108,6 +110,11 @@ import {
   getChaosRiftFireZones,
   getChaosRiftWells,
 } from './game/chaosRift'
+import {
+  getHiddenFinalePhase,
+  isHiddenFinaleStage,
+  type HiddenFinalePhase,
+} from './game/hiddenFinale'
 import {
   createStage,
   stepBall,
@@ -1500,6 +1507,7 @@ function GamePlay({
     () => getStageOverdriveBaseWells(stageIndex),
     [stageIndex],
   )
+  const isHiddenFinale = isHiddenFinaleStage(stageIndex)
   const stageTimeSeconds = getStageTimeSeconds(stageIndex)
   const stageItemDropChance = getStageItemDropChance(stageIndex)
   const stageItemWeights = useMemo(
@@ -1528,6 +1536,8 @@ function GamePlay({
   const stageStartScoreRef = useRef(0)
   const dprRef = useRef(1)
   const pausedAtRef = useRef<number | null>(null)
+  const hiddenFinaleStartedAtRef = useRef(performance.now())
+  const hiddenFinalePhaseSignatureRef = useRef('')
   const timeRemainingRef = useRef(stageTimeSeconds)
   const lastDisplayedTimeRef = useRef(stageTimeSeconds)
   const lastFireAtRef = useRef(0)
@@ -1571,6 +1581,10 @@ function GamePlay({
   const [itemNotice, setItemNotice] = useState<ItemType | null>(null)
   const [paused, setPaused] = useState(false)
   const [hazardIntro, setHazardIntro] = useState<HazardEntry | null>(null)
+  const [hiddenFinalePhase, setHiddenFinalePhase] =
+    useState<HiddenFinalePhase | null>(() =>
+      getHiddenFinalePhase(stageIndex, 0),
+    )
   const hazardIntroCheckedStageRef = useRef<number | null>(null)
   const [fps, setFps] = useState(60)
   const [buffs, setBuffs] = useState<BuffDisplay>(NO_BUFFS)
@@ -1618,6 +1632,8 @@ function GamePlay({
       pierceUntilRef.current = 0
       barrierCountRef.current = 0
       portalCooldownsRef.current.clear()
+      hiddenFinaleStartedAtRef.current = performance.now()
+      hiddenFinalePhaseSignatureRef.current = ''
       playerXRef.current = CANVAS_WIDTH / 2
       playerYRef.current = PLAYER_Y
       inputRef.current.releaseAll()
@@ -1636,6 +1652,7 @@ function GamePlay({
       setBuffs(NO_BUFFS)
       setTimeRemaining(stageTimeSeconds)
       setItemNotice(null)
+      setHiddenFinalePhase(getHiddenFinalePhase(stageIndex, 0))
       if (restoreScore) {
         scoreRef.current = stageStartScoreRef.current
         setScore(stageStartScoreRef.current)
@@ -1703,6 +1720,7 @@ function GamePlay({
     overdriveUntilRef.current += pausedFor
     pierceUntilRef.current += pausedFor
     lastHitAtRef.current += pausedFor
+    hiddenFinaleStartedAtRef.current += pausedFor
     harpoonsRef.current = harpoonsRef.current.map((harpoon) => ({
       ...harpoon,
       expiresAt:
@@ -1723,9 +1741,12 @@ function GamePlay({
     // fire zones can't hit the player before they've even gotten to move.
     if (wasStartingRef.current && !isStarting) {
       invulnUntilRef.current = performance.now() + STAGE_START_INVULN_MS
+      hiddenFinaleStartedAtRef.current = performance.now()
+      hiddenFinalePhaseSignatureRef.current = ''
+      setHiddenFinalePhase(getHiddenFinalePhase(stageIndex, 0))
     }
     wasStartingRef.current = isStarting
-  }, [isStarting])
+  }, [isStarting, stageIndex])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1953,6 +1974,21 @@ function GamePlay({
           : advanceFixedStep(accumulator, frameDeltaSec)
       const updateCount = fixedStep.updates
       accumulator = fixedStep.accumulator
+      const hiddenFinaleElapsedMs = Math.max(
+        0,
+        time - hiddenFinaleStartedAtRef.current,
+      )
+      const activeHiddenFinalePhase = getHiddenFinalePhase(
+        stageIndex,
+        hiddenFinaleElapsedMs,
+      )
+      if (activeHiddenFinalePhase && !paused && !isStarting) {
+        const signature = `${activeHiddenFinalePhase.id}:${activeHiddenFinalePhase.warning}`
+        if (signature !== hiddenFinalePhaseSignatureRef.current) {
+          hiddenFinalePhaseSignatureRef.current = signature
+          setHiddenFinalePhase(activeHiddenFinalePhase)
+        }
+      }
 
       for (let updateIndex = 0; updateIndex < updateCount; updateIndex += 1) {
         if (!paused && !endedRef.current) {
@@ -1992,7 +2028,11 @@ function GamePlay({
             ? 0
             : getCurrentWindAx(stageCurrent, time) +
               getBreezeWindAx(stageBreeze, time) +
-              getCurrentWindAx(stageChaosCurrent, time)
+              getCurrentWindAx(stageChaosCurrent, time) +
+              getCurrentWindAx(
+                activeHiddenFinalePhase?.current ?? null,
+                hiddenFinaleElapsedMs,
+              )
           const overdriveWellsNow = overdriveBaseWells
             ? getOverdriveWellsAtTime(overdriveBaseWells, stageIndex, time)
             : null
@@ -2002,14 +2042,22 @@ function GamePlay({
               : overdriveWellsNow
             : isStabilizerActive
               ? undefined
-              : (gravityWell ?? stageChaosWells ?? undefined)
-          const activeGravityScale = isAnchorActive ? 1 : gravityScale
+              : (gravityWell ??
+                stageChaosWells ??
+                activeHiddenFinalePhase?.wells ??
+                undefined)
+          const activeGravityScale = isAnchorActive
+            ? 1
+            : (activeHiddenFinalePhase?.gravityScale ?? gravityScale)
           const activeIceWindPush =
             isGripBootsActive || isOverdriveActive
               ? 0
               : getIceWindPush(iceWind, time)
           const activeJitterStrength =
-            isLockOnActive || isOverdriveActive ? null : quantumJitterStrength
+            isLockOnActive || isOverdriveActive
+              ? null
+              : (activeHiddenFinalePhase?.jitterStrength ??
+                quantumJitterStrength)
 
           {
             // Clock/Hourglass slow or stop balls, so the stage clock should
@@ -2164,12 +2212,21 @@ function GamePlay({
             // landing. Once harpoons are full and no shot is available, the
             // target goes back to being a real threat like anything else.)
             const canEngageTarget = harpoonsRef.current.length < maxHarpoons
+            const activeFireZoneElapsedMs =
+              activeHiddenFinalePhase?.fireZones !== null &&
+              activeHiddenFinalePhase?.fireZones !== undefined
+                ? hiddenFinaleElapsedMs
+                : time
             const fireZoneDangers: DangerZone[] = (
               fireZones ??
               stageChaosFireZones ??
+              activeHiddenFinalePhase?.fireZones ??
               []
             )
-              .filter((zone) => getFireZoneState(zone, time) !== 'dormant')
+              .filter(
+                (zone) =>
+                  getFireZoneState(zone, activeFireZoneElapsedMs) !== 'dormant',
+              )
               .map((zone) => ({
                 x: zone.x + zone.width / 2,
                 time: 0,
@@ -2563,8 +2620,8 @@ function GamePlay({
             !isOverdriveActive &&
             time >= invulnUntilRef.current
           ) {
-            const isInActiveFireZone = (zone: FireZone) => {
-              if (getFireZoneState(zone, time) !== 'active') return false
+            const isInActiveFireZone = (zone: FireZone, elapsedMs = time) => {
+              if (getFireZoneState(zone, elapsedMs) !== 'active') return false
               return (
                 playerXRef.current + PLAYER_WIDTH / 2 > zone.x &&
                 playerXRef.current - PLAYER_WIDTH / 2 < zone.x + zone.width
@@ -2573,7 +2630,11 @@ function GamePlay({
             const hitByFireZone =
               !isFireproofActive &&
               ((fireZones?.some(isInActiveFireZone) ?? false) ||
-                (stageChaosFireZones?.some(isInActiveFireZone) ?? false))
+                (stageChaosFireZones?.some(isInActiveFireZone) ?? false) ||
+                (activeHiddenFinalePhase?.fireZones?.some((zone) =>
+                  isInActiveFireZone(zone, hiddenFinaleElapsedMs),
+                ) ??
+                  false))
             const hitByAcidRain =
               !isUmbrellaActive &&
               (acidRainZones?.some((zone) => {
@@ -2995,6 +3056,28 @@ function GamePlay({
       }
 
       drawBackground(ctx, stageIndex)
+      if (activeHiddenFinalePhase?.current) {
+        drawCurrentFlow(
+          ctx,
+          getCurrentWindAx(
+            activeHiddenFinalePhase.current,
+            hiddenFinaleElapsedMs,
+          ),
+          hiddenFinaleElapsedMs,
+        )
+      }
+      if (activeHiddenFinalePhase?.wells) {
+        for (const well of activeHiddenFinalePhase.wells) {
+          drawGravityWell(ctx, well, hiddenFinaleElapsedMs)
+        }
+      }
+      if (activeHiddenFinalePhase?.fireZones) {
+        drawFireZones(
+          ctx,
+          activeHiddenFinalePhase.fireZones,
+          hiddenFinaleElapsedMs,
+        )
+      }
       if (stageCurrent) {
         drawCurrentFlow(ctx, getCurrentWindAx(stageCurrent, time), time)
       }
@@ -3144,6 +3227,7 @@ function GamePlay({
     solarFlare,
     quantumJitterStrength,
     overdriveBaseWells,
+    isHiddenFinale,
     onClear,
     onGameOver,
     demo,
@@ -3194,6 +3278,21 @@ function GamePlay({
         )}
         {overdriveBaseWells && (
           <span className="hud-hazard">Polarity Wells</span>
+        )}
+        {hiddenFinalePhase && (
+          <span
+            className={`hud-hazard hidden-finale-hud ${
+              hiddenFinalePhase.warning ? 'hidden-finale-hud-warning' : ''
+            }`}
+            style={
+              {
+                '--hidden-phase-color': hiddenFinalePhase.color,
+              } as CSSProperties
+            }
+          >
+            {hiddenFinalePhase.warning ? 'Incoming: ' : ''}
+            {hiddenFinalePhase.name}
+          </span>
         )}
         <div
           className="hp-bar hp-bar-pulse"
@@ -3311,6 +3410,29 @@ function GamePlay({
       )}
       <div className="gameplay-body">
         <div className="canvas-column">
+          {hiddenFinalePhase && (
+            <div
+              className={`hidden-finale-phase-banner ${
+                hiddenFinalePhase.warning
+                  ? 'hidden-finale-phase-banner-warning'
+                  : ''
+              }`}
+              style={
+                {
+                  '--hidden-phase-color': hiddenFinalePhase.color,
+                } as CSSProperties
+              }
+              role="status"
+              aria-live="polite"
+            >
+              <small>
+                {hiddenFinalePhase.warning
+                  ? 'ECLIPSE SHIFT'
+                  : 'ACTIVE PROTOCOL'}
+              </small>
+              <strong>{hiddenFinalePhase.name}</strong>
+            </div>
+          )}
           <canvas
             ref={canvasRef}
             aria-label="Orbit game field. Move left and right and fire harpoons to pop every ball."
@@ -3344,7 +3466,9 @@ function GamePlay({
             <h3>Progress</h3>
             <ol className="stage-roster">
               {Array.from(
-                { length: STAGE_COUNT },
+                {
+                  length: isHiddenFinale ? STAGE_COUNT : PUBLIC_STAGE_COUNT,
+                },
                 (_, i) => STAGE_NAMES[i % STAGE_NAMES.length],
               ).map((name, i) => (
                 <li

@@ -222,6 +222,7 @@ export const STAGE_NAMES = [
   'Singularity Ascendant (Final Singularity)',
   'The White-Hot Core (Final Singularity)',
   "Orbit's Final Dawn (Final Singularity)",
+  'Eclipse Zero (Hidden Finale)',
 ]
 
 function drawSky(ctx: CanvasRenderingContext2D, top: string, bottom: string) {
@@ -768,7 +769,7 @@ function createUniqueIllustratedBackground(src: string) {
 }
 
 const UNIQUE_LATE_STAGE_BACKGROUNDS = Array.from(
-  { length: 180 },
+  { length: 181 },
   (_, index) => {
     const stageNumber = index + 21
     const key = `../assets/backgrounds/illustrated/stage${String(

@@ -183,4 +183,13 @@ describe('getItemWeights', () => {
       true,
     )
   })
+
+  it('restores every Eclipse Protocol counter in hidden stage 201', () => {
+    const types = getItemWeights(200).map(([type]) => type)
+    expect(types).toContain('stabilizer')
+    expect(types).toContain('fireproof')
+    expect(types).toContain('anchor')
+    expect(types).toContain('lockOn')
+    expect(types).toContain('overdrive')
+  })
 })

@@ -4,7 +4,7 @@ import GamePlay from './GamePlay'
 import StageMap from './StageMap'
 import Glossary from './Glossary'
 import Intro from './Intro'
-import { STAGE_COUNT } from './game/constants'
+import { PUBLIC_STAGE_COUNT, STAGE_COUNT } from './game/constants'
 import type { StageResult } from './game/types'
 import {
   getBestScore,
@@ -27,6 +27,10 @@ import {
 import { getHighestUnlockedStage, unlockStage } from './game/progress'
 import { isUpdateAvailable } from './game/updateCheck'
 import { getLastSeenVersion, setLastSeenVersion } from './game/versionSeen'
+import {
+  HIDDEN_FINAL_STAGE_INDEX,
+  getVisibleStageCount,
+} from './game/hiddenFinale'
 
 type Screen =
   | 'intro'
@@ -36,6 +40,7 @@ type Screen =
   | 'play'
   | 'stageClear'
   | 'milestone'
+  | 'hiddenReveal'
   | 'demo'
   | 'demoMap'
   | 'map'
@@ -57,6 +62,7 @@ const BACK_TO_MAIN_SCREENS: readonly Screen[] = [
   'map',
   'demo',
   'demoMap',
+  'hiddenReveal',
   'end',
   'whatsNew',
   'glossary',
@@ -380,7 +386,10 @@ function App() {
       setHighestUnlockedStage(unlockStage(nextStage))
       setFinalScore(score)
       setStageIndex(nextStage)
-      if (clearedStage % MILESTONE_INTERVAL === 0) {
+      if (clearedStage === PUBLIC_STAGE_COUNT) {
+        playVictoryFanfare()
+        setScreen('hiddenReveal')
+      } else if (clearedStage % MILESTONE_INTERVAL === 0) {
         setMilestoneStage(clearedStage)
         playVictoryFanfare()
         setScreen('milestone')
@@ -398,12 +407,25 @@ function App() {
     setScreen('stageClear')
   }
 
+  const continueToHiddenFinale = () => {
+    setCountdown(COUNTDOWN_START)
+    setScreen('countdown')
+  }
+
   const handleGameOver = (score: number, reason?: 'timeUp') => {
     finish('gameover', score, reason)
   }
 
   // Demo mode loops forever and never records a real score.
   const handleDemoClear = () => {
+    if (
+      stageIndex === PUBLIC_STAGE_COUNT - 1 &&
+      highestUnlockedStage < HIDDEN_FINAL_STAGE_INDEX
+    ) {
+      setStageIndex(0)
+      return
+    }
+
     setStageIndex((stageIndex + 1) % STAGE_COUNT)
   }
 
@@ -443,6 +465,9 @@ function App() {
           break
         case 'milestone':
           continueFromMilestone()
+          break
+        case 'hiddenReveal':
+          continueToHiddenFinale()
           break
         case 'end':
           handleRetry()
@@ -495,6 +520,7 @@ function App() {
   }
 
   if (screen === 'main') {
+    const visibleStageCount = getVisibleStageCount(highestUnlockedStage)
     return (
       <div className="screen main-screen">
         <p className="app-version">v{__APP_VERSION__}</p>
@@ -510,7 +536,7 @@ function App() {
         <h1>ORBIT</h1>
         <p className="main-tagline">Pop • Split • Clear the Stage</p>
         <p className="main-unlock-progress">
-          Unlocked: Stage {highestUnlockedStage + 1} / {STAGE_COUNT}
+          Unlocked: Stage {highestUnlockedStage + 1} / {visibleStageCount}
         </p>
         <p className="controls-summary main-controls">{CONTROLS_SUMMARY}</p>
         <div className="main-actions">
@@ -607,7 +633,10 @@ function App() {
         onStartStage={startDemoAtStage}
         // The AI can showcase any stage, not just ones the player has
         // reached themselves.
-        highestUnlockedStage={STAGE_COUNT - 1}
+        highestUnlockedStage={Math.max(
+          PUBLIC_STAGE_COUNT - 1,
+          highestUnlockedStage,
+        )}
       />
     )
   }
@@ -723,7 +752,8 @@ function App() {
         <p className="main-kicker">Certificate of Achievement</p>
         <h1>Stage {milestoneStage} Clear!</h1>
         <p className="milestone-tagline">
-          {milestoneStage} stages down, {STAGE_COUNT - milestoneStage} to go.
+          {milestoneStage} stages down, {PUBLIC_STAGE_COUNT - milestoneStage} to
+          go.
         </p>
         <p className="result-score">Score {finalScore}</p>
         <p className="milestone-encouragement">
@@ -737,6 +767,32 @@ function App() {
           Continue
         </button>
         <p className="space-hint">▼ Press Space to Continue ▼</p>
+      </div>
+    )
+  }
+
+  if (screen === 'hiddenReveal') {
+    return (
+      <div className="screen hidden-finale-reveal-screen">
+        <div className="hidden-finale-eclipse" aria-hidden="true">
+          <span />
+        </div>
+        <p className="main-kicker">Hidden Signal Detected</p>
+        <h1>Stage 201 Unlocked</h1>
+        <p className="hidden-finale-reveal-title">Eclipse Zero</p>
+        <p className="hidden-finale-reveal-copy">
+          The final dawn was only a doorway. Four protocols are waiting beyond
+          the edge of Orbit.
+        </p>
+        <p className="result-score">Score carried forward: {finalScore}</p>
+        <button
+          type="button"
+          className="screen-button hidden-finale-enter-button"
+          onClick={continueToHiddenFinale}
+        >
+          Enter the True Finale
+        </button>
+        <p className="space-hint">Press Space to Enter</p>
       </div>
     )
   }
@@ -764,6 +820,9 @@ function App() {
     )
   }
 
+  const isTrueFinalClear =
+    result === 'clear' && stageIndex === HIDDEN_FINAL_STAGE_INDEX
+
   return (
     <div
       className={`screen result-screen ${result === 'clear' ? 'result-screen-clear' : ''}`}
@@ -774,25 +833,31 @@ function App() {
         </p>
       )}
       <p className="main-kicker">
-        {result === 'clear'
-          ? 'Certificate of Completion'
-          : gameOverReason === 'timeUp'
-            ? 'Time Over'
-            : 'Game Over'}
+        {isTrueFinalClear
+          ? 'Certificate of Absolute Completion'
+          : result === 'clear'
+            ? 'Certificate of Completion'
+            : gameOverReason === 'timeUp'
+              ? 'Time Over'
+              : 'Game Over'}
       </p>
       <h1>
-        {result === 'clear'
-          ? 'Game Clear'
-          : gameOverReason === 'timeUp'
-            ? 'Time Over'
-            : 'Game Over'}
+        {isTrueFinalClear
+          ? 'True Final Clear'
+          : result === 'clear'
+            ? 'Game Clear'
+            : gameOverReason === 'timeUp'
+              ? 'Time Over'
+              : 'Game Over'}
       </h1>
       <p className="result-score">Score {finalScore}</p>
       <p className="result-high-score">All-time #{rank}</p>
       <p className="result-detail">
-        {result === 'clear'
-          ? 'Fully Cleared'
-          : `Ended at stage ${stageIndex + 1}`}
+        {isTrueFinalClear
+          ? 'Eclipse Zero Conquered · 201 / 201'
+          : result === 'clear'
+            ? 'Fully Cleared'
+            : `Ended at stage ${stageIndex + 1}`}
       </p>
       <p className="result-detail result-date">
         {new Date().toLocaleString('en-US', {

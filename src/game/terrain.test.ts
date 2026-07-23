@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { PLAYER_Y } from './constants'
+import { PLAYER_Y, PUBLIC_STAGE_COUNT, STAGE_COUNT } from './constants'
 import { getStageTerrain, STAGE_TERRAINS, stepPlayerOnTerrain } from './terrain'
 
 describe('stage terrain', () => {
   it('starts with open arenas and introduces terrain gradually', () => {
-    expect(STAGE_TERRAINS).toHaveLength(200)
+    expect(STAGE_TERRAINS).toHaveLength(STAGE_COUNT)
     expect(STAGE_TERRAINS[0]).toEqual({ platforms: [] })
     expect(STAGE_TERRAINS[1]).toEqual({ platforms: [] })
     expect(STAGE_TERRAINS[2].platforms).toHaveLength(1)
     expect(STAGE_TERRAINS[3].platforms).toHaveLength(1)
 
-    const platformCounts = STAGE_TERRAINS.map(
+    const platformCounts = STAGE_TERRAINS.slice(0, PUBLIC_STAGE_COUNT).map(
       (terrain) => terrain.platforms.length,
     )
     for (let stage = 1; stage < platformCounts.length; stage += 1) {
@@ -21,6 +21,13 @@ describe('stage terrain', () => {
     expect(platformCounts[5]).toBe(2)
     expect(platformCounts[10]).toBe(3)
     expect(platformCounts[15]).toBe(4)
+  })
+
+  it('uses a unique broken-crown arena for the hidden finale', () => {
+    const hiddenTerrain = getStageTerrain(STAGE_COUNT - 1)
+
+    expect(hiddenTerrain.platforms).toHaveLength(4)
+    expect(hiddenTerrain).not.toEqual(getStageTerrain(PUBLIC_STAGE_COUNT - 1))
   })
 
   it('keeps the player on the ground while moving horizontally', () => {

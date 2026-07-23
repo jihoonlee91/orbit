@@ -1,0 +1,238 @@
+.hidden-finale-hud {
+  border-color: color-mix(
+    in srgb,
+    var(--hidden-phase-color, #facc15) 70%,
+    #ffffff
+  ) !important;
+  color: var(--hidden-phase-color, #facc15) !important;
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--hidden-phase-color) 32%, transparent),
+    inset 0 0 12px
+      color-mix(in srgb, var(--hidden-phase-color) 12%, transparent);
+}
+
+.hidden-finale-hud-warning {
+  animation: hidden-finale-warning-pulse 0.48s ease-in-out infinite alternate;
+}
+
+.hidden-finale-phase-banner {
+  position: absolute;
+  z-index: 6;
+  top: 18px;
+  left: 50%;
+  display: grid;
+  min-width: min(320px, 72%);
+  padding: 8px 18px 10px;
+  border: 1px solid
+    color-mix(in srgb, var(--hidden-phase-color, #facc15) 72%, #ffffff);
+  border-radius: 999px;
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+  background: rgba(2, 6, 23, 0.72);
+  box-shadow:
+    0 10px 26px rgba(2, 6, 23, 0.45),
+    0 0 22px color-mix(in srgb, var(--hidden-phase-color) 25%, transparent);
+  backdrop-filter: blur(7px);
+  transform: translateX(-50%);
+  animation: hidden-finale-banner-in 0.45s ease-out both;
+}
+
+.hidden-finale-phase-banner small {
+  color: var(--hidden-phase-color, #facc15);
+  font: 700 9px/1.5 var(--font-game);
+  letter-spacing: 0.2em;
+}
+
+.hidden-finale-phase-banner strong {
+  font: 700 13px/1.5 var(--font-game);
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
+}
+
+.hidden-finale-phase-banner:not(.hidden-finale-phase-banner-warning) {
+  opacity: 0.72;
+  transform: translateX(-50%) scale(0.88);
+  animation: hidden-finale-banner-settle 1.1s 0.9s ease both;
+}
+
+.hidden-finale-phase-banner-warning {
+  background: color-mix(
+    in srgb,
+    var(--hidden-phase-color, #facc15) 18%,
+    rgba(2, 6, 23, 0.82)
+  );
+  animation:
+    hidden-finale-banner-in 0.38s ease-out both,
+    hidden-finale-warning-pulse 0.48s 0.38s ease-in-out infinite alternate;
+}
+
+@keyframes hidden-finale-banner-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -18px) scale(0.92);
+  }
+}
+
+@keyframes hidden-finale-banner-settle {
+  to {
+    opacity: 0.42;
+    transform: translateX(-50%) scale(0.78);
+  }
+}
+
+@keyframes hidden-finale-warning-pulse {
+  to {
+    filter: brightness(1.35);
+    box-shadow:
+      0 0 20px color-mix(in srgb, var(--hidden-phase-color) 48%, transparent),
+      inset 0 0 16px
+        color-mix(in srgb, var(--hidden-phase-color) 16%, transparent);
+  }
+}
+
+@media (max-width: 640px) {
+  .hidden-finale-phase-banner {
+    top: 10px;
+    min-width: min(260px, 76%);
+    padding: 6px 12px 8px;
+  }
+
+  .hidden-finale-phase-banner strong {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hidden-finale-hud-warning,
+  .hidden-finale-phase-banner,
+  .hidden-finale-phase-banner-warning {
+    animation: none;
+  }
+}
+
+.reduced-motion .hidden-finale-hud-warning,
+.reduced-motion .hidden-finale-phase-banner,
+.reduced-motion .hidden-finale-phase-banner-warning {
+  animation: none;
+}
+
+.stage-map-card-hidden-finale {
+  border-color: rgba(250, 204, 21, 0.78) !important;
+  background:
+    linear-gradient(rgba(2, 6, 23, 0.16), rgba(2, 6, 23, 0.42)),
+    radial-gradient(circle at 50% 0%, #312e81, #020617 72%) !important;
+  box-shadow:
+    0 0 0 1px rgba(250, 204, 21, 0.18),
+    0 0 26px rgba(168, 85, 247, 0.3) !important;
+}
+
+.stage-map-card-hidden-finale p {
+  color: #fef3c7 !important;
+  text-shadow: 0 2px 8px #020617;
+}
+
+.stage-map-badge-hidden-finale {
+  top: 6px;
+  right: 6px;
+  left: auto;
+  color: #111827 !important;
+  background: linear-gradient(90deg, #fde68a, #f0abfc, #67e8f9) !important;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.7);
+}
+
+.hidden-finale-reveal-screen {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(250, 204, 21, 0.42);
+  color: #f8fafc;
+  background:
+    radial-gradient(
+      circle at 50% 28%,
+      rgba(168, 85, 247, 0.28),
+      transparent 30%
+    ),
+    linear-gradient(145deg, #020617, #111827 52%, #1e1b4b);
+  box-shadow:
+    0 24px 64px rgba(2, 6, 23, 0.58),
+    0 0 42px rgba(168, 85, 247, 0.24);
+}
+
+.hidden-finale-reveal-screen::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -40%;
+  opacity: 0.2;
+  background: conic-gradient(
+    from 45deg,
+    #38bdf8,
+    transparent 16%,
+    #a855f7 28%,
+    transparent 42%,
+    #fb7185 58%,
+    transparent 72%,
+    #facc15 86%,
+    transparent
+  );
+  animation: hidden-finale-reveal-spin 18s linear infinite;
+}
+
+.hidden-finale-eclipse {
+  display: grid;
+  width: 112px;
+  height: 112px;
+  place-items: center;
+  border-radius: 50%;
+  background: #02030a;
+  box-shadow:
+    0 0 0 3px #fff7c2,
+    0 0 18px 7px #facc15,
+    0 0 48px 18px rgba(168, 85, 247, 0.55);
+}
+
+.hidden-finale-eclipse span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 20px 7px #fff;
+}
+
+.hidden-finale-reveal-title {
+  color: #fde68a !important;
+  font-size: var(--fs-xl) !important;
+  letter-spacing: 0.12em !important;
+  text-shadow: 0 0 22px rgba(250, 204, 21, 0.5);
+}
+
+.hidden-finale-reveal-copy {
+  max-width: 42ch;
+  color: #cbd5e1 !important;
+  font-size: var(--fs-md) !important;
+  line-height: 1.8;
+}
+
+.hidden-finale-enter-button {
+  border-color: #fde68a !important;
+  color: #111827 !important;
+  background: linear-gradient(90deg, #fde68a, #f0abfc, #67e8f9) !important;
+  box-shadow: 0 0 28px rgba(250, 204, 21, 0.38);
+}
+
+@keyframes hidden-finale-reveal-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hidden-finale-reveal-screen::before {
+    animation: none;
+  }
+}
+
+.reduced-motion .hidden-finale-reveal-screen::before {
+  animation: none;
+}

@@ -23,6 +23,7 @@ import {
   ITEM_WEIGHTS,
   type Obstacle,
 } from './constants'
+import { HIDDEN_FINAL_STAGE_INDEX } from './hiddenFinale'
 import { applyGravityWellPull, type GravityWell } from './gravityWells'
 import type { Ball, Item, ItemType } from './types'
 
@@ -48,6 +49,18 @@ const EARLY_STAGE_BALLS: readonly (readonly Omit<Ball, 'id'>[])[] = [
 ]
 
 export function createStage(stageIndex: number): Ball[] {
+  if (stageIndex === HIDDEN_FINAL_STAGE_INDEX) {
+    const positions = [120, 260, 400, 560, 700, 840]
+    return positions.map((x, id) => ({
+      id,
+      x,
+      y: id % 2 === 0 ? 90 : 150,
+      vx: (id % 2 === 0 ? 1 : -1) * (720 + id * 16),
+      vy: id % 3 === 0 ? 80 : -40,
+      level: 2,
+    }))
+  }
+
   const earlyLayout = EARLY_STAGE_BALLS[stageIndex]
   if (earlyLayout) {
     return earlyLayout.map((ball, id) => ({ id, ...ball }))

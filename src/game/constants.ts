@@ -1,4 +1,8 @@
 import type { ItemType } from './types'
+import {
+  HIDDEN_FINAL_STAGE_INDEX,
+  HIDDEN_FINALE_TIME_SECONDS,
+} from './hiddenFinale'
 
 export const CANVAS_WIDTH = 960
 export const CANVAS_HEIGHT = 540
@@ -31,11 +35,15 @@ export const SCORE_BY_LEVEL = [300, 150, 100]
 
 export const COMBO_WINDOW_MS = 1500
 
-export const STAGE_COUNT = 200
+export const PUBLIC_STAGE_COUNT = 200
+export const STAGE_COUNT = 201
 export const STAGE_TIME_SECONDS = 90
 export const TIME_BONUS_PER_SECOND = 10
 
 export function getStageTimeSeconds(stageIndex: number): number {
+  if (Math.floor(stageIndex) === HIDDEN_FINAL_STAGE_INDEX) {
+    return HIDDEN_FINALE_TIME_SECONDS
+  }
   const normalizedStage = Math.max(
     0,
     Math.min(STAGE_COUNT - 1, Math.floor(stageIndex)),
@@ -271,6 +279,8 @@ export const STAGE_OBSTACLES: readonly Obstacle[] = [
   { x: 710, y: 365, width: 199, height: 18 },
   { x: 380, y: 187, width: 248, height: 18 },
   { x: 419, y: 184, width: 188, height: 18 },
+  // --- Hidden true finale (stage 201) ---
+  { x: 380, y: 142, width: 200, height: 18 },
 ]
 
 export function getStageObstacle(stageIndex: number): Obstacle {
@@ -297,6 +307,7 @@ export const MAGNET_PULL_RATE = 4
 export const ITEM_DROP_CHANCE = 0.14
 
 export function getStageItemDropChance(stageIndex: number): number {
+  if (Math.floor(stageIndex) === HIDDEN_FINAL_STAGE_INDEX) return 0.22
   const normalizedStage = Math.max(
     0,
     Math.min(STAGE_COUNT - 1, Math.floor(stageIndex)),
@@ -410,6 +421,18 @@ export function getItemWeights(stageIndex: number): [ItemType, number][] {
   // Overdrive is the finale's capstone reward — rarer than the other
   // hazard-counter items since it does much more (immunity + score boost).
   if (stageIndex >= OVERDRIVE_ITEM_START_STAGE) weights.push(['overdrive', 7])
+  if (stageIndex === HIDDEN_FINAL_STAGE_INDEX) {
+    // Every Eclipse Protocol phase has a relevant counter. Their extra
+    // weight makes the secret finale an adaptation puzzle with comeback
+    // routes, not a single unlucky-drop check.
+    weights.push(
+      ['anchor', 14],
+      ['lockOn', 14],
+      ['barrier', 10],
+      ['timePlus', 10],
+      ['overdrive', 5],
+    )
+  }
   return weights
 }
 

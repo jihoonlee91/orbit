@@ -32,4 +32,9 @@ describe('stage unlock progress', () => {
     )
     expect(getHighestUnlockedStage()).toBe(7)
   })
+
+  it('allows the secret stage only at the final index and clamps beyond it', () => {
+    expect(unlockStage(200)).toBe(200)
+    expect(unlockStage(999)).toBe(200)
+  })
 })

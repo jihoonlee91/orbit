@@ -12,6 +12,7 @@ import { SOLAR_FLARE_START_STAGE } from './solarFlares'
 import { QUANTUM_RIFT_START_STAGE } from './quantumRifts'
 import { OVERDRIVE_START_STAGE } from './overdriveWells'
 import { CHAOS_RIFT_START_STAGE } from './chaosRift'
+import { HIDDEN_FINAL_STAGE_INDEX } from './hiddenFinale'
 
 export type HazardEntry = {
   id: string
@@ -147,6 +148,13 @@ export const HAZARD_CATALOG: readonly HazardEntry[] = [
     startStage: CHAOS_RIFT_START_STAGE + 40,
     description:
       '해류, 중력점, 화염 지대가 동시에 몰아치는 최종 관문입니다. Stabilizer로 해류/중력점을, Fireproof나 Overdrive로 화염 피해를 막을 수 있습니다.',
+  },
+  {
+    id: 'eclipseProtocol',
+    name: 'Eclipse Protocol',
+    startStage: HIDDEN_FINAL_STAGE_INDEX,
+    description:
+      'Four mastered hazards rotate every nine seconds. Watch the phase banner: every shift starts with a safe warning before Rift Gale, Twin Singularity, Solar Collapse, or Zero-G Fracture activates.',
   },
 ]
 
