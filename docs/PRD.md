@@ -20,6 +20,8 @@
 - Power-up items
 - Score/HP display, game over and restart, with a local score history and rank
 - Stage Map (preview of all stages) and an AI-controlled attract/demo mode
+- A cinematic 1200×630 social-sharing thumbnail that presents Orbit as an
+  action-driven world-tour arcade game instead of reproducing the menu UI
 
 ## 4. Non-Goals (excluded from this version)
 

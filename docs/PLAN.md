@@ -234,3 +234,11 @@ A file laying out the goals for each phase.
   clock, reward-focused item pool, and true-ending result copy
 - Cycle through four telegraphed Eclipse Protocol phases so the challenge comes
   from adapting to mastered mechanics rather than unreadable raw speed
+
+### Phase 6-9. Promotional Thumbnail
+
+- Replace the menu screenshot used for link previews with original 1200×630 key
+  art centered on Orbit's harpoon-and-splitting-ball action
+- Combine world-tour landmarks and the eclipse finale into one readable arcade
+  poster while keeping the `ORBIT` title dominant at thumbnail size
+- Publish the image through Open Graph and Twitter card metadata
