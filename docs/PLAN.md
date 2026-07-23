@@ -215,3 +215,13 @@ A file laying out the goals for each phase.
 - Extend progression to 200 stages with combined current and fire-zone hazards
 - Give stages 151-200 five distinct ten-stage Chaos Rift art directions and one dedicated WebP per stage
 - Publish and verify each ten-stage background batch independently before continuing
+
+### Phase 6-7. Cinematic Game Intro
+
+- Open each site session with a short in-game cinematic that introduces ORBIT's
+  world tour, escalating hazards, power-ups, and 200-stage finale
+- Reuse selected finished stage illustrations as full-screen film shots with
+  crossfades and slow camera motion rather than shipping a large duplicated
+  video file
+- Keep the intro skippable, replayable from the main menu, responsive on mobile,
+  and compatible with the reduced-motion setting
