@@ -534,7 +534,8 @@
   }
 
   .hud-combo,
-  .hud-fps {
+  .hud-fps,
+  .hud-stage-name {
     display: none;
   }
 
@@ -685,6 +686,7 @@
 
   .gameplay-hud .hud-combo,
   .gameplay-hud .hud-fps,
+  .gameplay-hud .hud-stage-name,
   .gameplay-hud .hp-text {
     display: none;
   }
@@ -1559,6 +1561,14 @@
 
 .hud-stage {
   color: #fef08a;
+}
+
+.hud-stage-name {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.85em;
+  opacity: 0.85;
 }
 
 .hud-score {

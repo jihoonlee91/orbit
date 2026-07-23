@@ -3251,6 +3251,9 @@ function GamePlay({
     <div className="gameplay">
       <div className="gameplay-hud">
         <span className="hud-stage">Stage {stageIndex + 1}</span>
+        <span className="hud-stage-name">
+          {STAGE_NAMES[stageIndex % STAGE_NAMES.length]}
+        </span>
         {portalPairs.length > 0 && (
           <span className="hud-hazard">Portals ×{portalPairs.length}</span>
         )}
