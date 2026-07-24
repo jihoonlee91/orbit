@@ -5,9 +5,17 @@ import {
   STAGE_OBSTACLES,
   type Obstacle,
 } from './constants'
+import { ICE_WIND_START_STAGE, ICE_WIND_STAGE_COUNT } from './iceWinds'
 
 export type StageTerrain = {
   platforms: readonly Obstacle[]
+  // The floor itself is slick through Frozen Summit (same range as the
+  // Ice Wind push hazard) — the player accelerates toward input instead
+  // of snapping to full speed, and keeps sliding once input releases
+  // instead of stopping dead. Distinct from Ice Wind: that's an external
+  // push independent of the player's own input, this is the player's own
+  // momentum being harder to control.
+  icy?: boolean
 }
 
 const HIDDEN_FINALE_TERRAIN: StageTerrain = {
@@ -173,10 +181,18 @@ function getSupplementalPlatforms(stageIndex: number): readonly Obstacle[] {
   return family(stageIndex)
 }
 
+function isIcyStage(stageIndex: number): boolean {
+  return (
+    stageIndex >= ICE_WIND_START_STAGE &&
+    stageIndex < ICE_WIND_START_STAGE + ICE_WIND_STAGE_COUNT
+  )
+}
+
 export const STAGE_TERRAINS: readonly StageTerrain[] = STAGE_OBSTACLES.map(
   (primary, stageIndex) => {
+    const icy = isIcyStage(stageIndex) ? { icy: true } : {}
     const earlyTerrain = EARLY_STAGE_TERRAINS[stageIndex]
-    if (earlyTerrain) return earlyTerrain
+    if (earlyTerrain) return { ...earlyTerrain, ...icy }
 
     const targetCount = getTargetPlatformCount(stageIndex)
     const candidates = [
@@ -184,7 +200,7 @@ export const STAGE_TERRAINS: readonly StageTerrain[] = STAGE_OBSTACLES.map(
       ...(EXTRA_PLATFORMS[stageIndex] ?? []),
       ...getSupplementalPlatforms(stageIndex),
     ]
-    return { platforms: candidates.slice(0, targetCount) }
+    return { platforms: candidates.slice(0, targetCount), ...icy }
   },
 )
 
@@ -219,21 +235,47 @@ type PlayerTerrainInput = {
   right: boolean
 }
 
+// Reaches full speed in 1/3s on ice (vs. instant everywhere else) —
+// still responsive, just not a snap-to-speed.
+const ICE_ACCEL_PER_SEC = 900
+// Takes ~0.6s to coast to a stop once input releases — noticeably
+// slower than the instant stop every other stage has, which is the
+// whole point of ice: overshoot is a real risk.
+const ICE_DECEL_PER_SEC = 500
+
+function moveToward(value: number, target: number, maxDelta: number): number {
+  if (value < target) return Math.min(value + maxDelta, target)
+  if (value > target) return Math.max(value - maxDelta, target)
+  return value
+}
+
 export function stepPlayerOnTerrain(
   x: number,
   _y: number,
   input: PlayerTerrainInput,
   dtSec: number,
   horizontalSpeed: number,
-  _terrain: StageTerrain,
-): { x: number; y: number } {
+  terrain: StageTerrain,
+  vx = 0,
+): { x: number; y: number; vx: number } {
   const horizontalDirection = Number(input.right) - Number(input.left)
-  const nextX = Math.min(
-    CANVAS_WIDTH - PLAYER_WIDTH / 2,
-    Math.max(
-      PLAYER_WIDTH / 2,
-      x + horizontalDirection * horizontalSpeed * dtSec,
-    ),
-  )
-  return { x: nextX, y: PLAYER_Y }
+  const clampX = (value: number) =>
+    Math.min(CANVAS_WIDTH - PLAYER_WIDTH / 2, Math.max(PLAYER_WIDTH / 2, value))
+
+  if (!terrain.icy) {
+    const nextX = clampX(x + horizontalDirection * horizontalSpeed * dtSec)
+    return { x: nextX, y: PLAYER_Y, vx: horizontalDirection * horizontalSpeed }
+  }
+
+  const targetVx = horizontalDirection * horizontalSpeed
+  const accel =
+    targetVx !== 0 ? ICE_ACCEL_PER_SEC * dtSec : ICE_DECEL_PER_SEC * dtSec
+  const nextVx = moveToward(vx, targetVx, accel)
+  const rawNextX = x + nextVx * dtSec
+  const nextX = clampX(rawNextX)
+  // Sliding into a wall kills the momentum instead of pinning it at max
+  // speed against the boundary, so the player isn't stuck re-accelerating
+  // through the wall's resistance every subsequent frame.
+  const hitWall = nextX !== rawNextX
+  return { x: nextX, y: PLAYER_Y, vx: hitWall ? 0 : nextVx }
 }

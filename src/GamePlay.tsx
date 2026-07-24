@@ -2010,6 +2010,10 @@ function GamePlay({
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const playerXRef = useRef(CANVAS_WIDTH / 2)
   const playerYRef = useRef(PLAYER_Y)
+  // Horizontal momentum, only meaningful on icy stages (Frozen Summit) —
+  // stepPlayerOnTerrain snaps to input everywhere else regardless of
+  // this value.
+  const playerVxRef = useRef(0)
   const playerFacingRef = useRef<-1 | 1>(1)
   const playerMovingUntilRef = useRef(0)
   const ballsRef = useRef<Ball[]>(createStage(stageIndex))
@@ -2143,6 +2147,7 @@ function GamePlay({
       hiddenFinalePhaseSignatureRef.current = ''
       playerXRef.current = CANVAS_WIDTH / 2
       playerYRef.current = PLAYER_Y
+      playerVxRef.current = 0
       playerFacingRef.current = 1
       playerMovingUntilRef.current = 0
       inputRef.current.releaseAll()
@@ -2948,9 +2953,11 @@ function GamePlay({
             dtSec,
             playerSpeed,
             terrain,
+            playerVxRef.current,
           )
           playerXRef.current = nextPlayerPosition.x
           playerYRef.current = nextPlayerPosition.y
+          playerVxRef.current = nextPlayerPosition.vx
 
           if (activeIceWindPush !== 0) {
             playerXRef.current = Math.min(

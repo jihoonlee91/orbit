@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PLAYER_Y, PUBLIC_STAGE_COUNT, STAGE_COUNT } from './constants'
+import { ICE_WIND_START_STAGE } from './iceWinds'
 import {
   getStageTerrain,
   isDestructiblePlatform,
@@ -102,5 +103,80 @@ describe('isDestructiblePlatform', () => {
 
   it('is deterministic for the same stage and platform index', () => {
     expect(isDestructiblePlatform(45, 2)).toBe(isDestructiblePlatform(45, 2))
+  })
+})
+
+describe('icy floor momentum (Frozen Summit)', () => {
+  it('marks Frozen Summit stages icy and every other stage not icy', () => {
+    expect(getStageTerrain(ICE_WIND_START_STAGE).icy).toBe(true)
+    expect(getStageTerrain(ICE_WIND_START_STAGE + 9).icy).toBe(true)
+    expect(getStageTerrain(ICE_WIND_START_STAGE - 1).icy).toBeFalsy()
+    expect(getStageTerrain(0).icy).toBeFalsy()
+  })
+
+  it('snaps instantly to input speed on a normal (non-icy) stage', () => {
+    const terrain = getStageTerrain(0)
+    const next = stepPlayerOnTerrain(
+      400,
+      PLAYER_Y,
+      { left: false, right: true },
+      0.1,
+      300,
+      terrain,
+      0,
+    )
+    expect(next.x).toBe(430)
+    expect(next.vx).toBe(300)
+  })
+
+  it('accelerates gradually toward input speed on an icy stage', () => {
+    const terrain = getStageTerrain(ICE_WIND_START_STAGE)
+    const next = stepPlayerOnTerrain(
+      400,
+      PLAYER_Y,
+      { left: false, right: true },
+      0.1,
+      300,
+      terrain,
+      0,
+    )
+    // Same input as the non-icy case above, but starting from 0 velocity
+    // on ice can't instantly reach 300px/s — it should end up short of
+    // both the non-icy distance and the non-icy final speed.
+    expect(next.vx).toBeGreaterThan(0)
+    expect(next.vx).toBeLessThan(300)
+    expect(next.x).toBeGreaterThan(400)
+    expect(next.x).toBeLessThan(430)
+  })
+
+  it('keeps sliding (does not stop dead) once input releases on ice', () => {
+    const terrain = getStageTerrain(ICE_WIND_START_STAGE)
+    const next = stepPlayerOnTerrain(
+      400,
+      PLAYER_Y,
+      { left: false, right: false },
+      0.1,
+      300,
+      terrain,
+      300,
+    )
+    expect(next.vx).toBeGreaterThan(0)
+    expect(next.vx).toBeLessThan(300)
+    expect(next.x).toBeGreaterThan(400)
+  })
+
+  it('zeroes momentum instead of pinning it when sliding into a wall', () => {
+    const terrain = getStageTerrain(ICE_WIND_START_STAGE)
+    const next = stepPlayerOnTerrain(
+      15,
+      PLAYER_Y,
+      { left: true, right: false },
+      1,
+      300,
+      terrain,
+      -300,
+    )
+    expect(next.x).toBe(20)
+    expect(next.vx).toBe(0)
   })
 })
