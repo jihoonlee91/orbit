@@ -103,9 +103,9 @@ each with a different pair:
 
 Illustrated-background files:
 
-- `src/assets/backgrounds/`: five Chaos Rift chapter plates
-- `src/assets/backgrounds/illustrated/`: dedicated `stage151.webp`
-  through `stage200.webp` runtime backgrounds
+- `src/assets/backgrounds/stages/`: unified `stage001.webp` through
+  `stage201.webp` runtime backgrounds, including the dedicated Chaos Rift
+  compositions for stages 151-200
 - `src/game/backgrounds.ts`: chapter fallbacks and dedicated image
   resolution without modulo reuse
 
