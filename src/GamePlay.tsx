@@ -138,6 +138,7 @@ import {
   type DangerZone,
 } from './game/engine'
 import type { Ball, Harpoon, Item, ItemType } from './game/types'
+import { getPlayerTheme, type PlayerTheme } from './game/playerTheme'
 import {
   playHitSound,
   playPlayerHitSound,
@@ -1290,8 +1291,6 @@ function drawWeaponAura(
   ctx.restore()
 }
 
-type PlayerTheme = 'explorer' | 'ranger' | 'voyager' | 'diver' | 'pilot'
-
 type PlayerPalette = {
   armor: string
   armorDark: string
@@ -1302,15 +1301,15 @@ type PlayerPalette = {
 }
 
 const PLAYER_PALETTES: Record<PlayerTheme, PlayerPalette> = {
-  explorer: {
-    armor: '#ef4444',
-    armorDark: '#7f1d1d',
-    armorLight: '#fb923c',
-    accent: '#facc15',
+  traveler: {
+    armor: '#b45309',
+    armorDark: '#451a03',
+    armorLight: '#f59e0b',
+    accent: '#ef4444',
     glow: '#67e8f9',
     visor: '#cffafe',
   },
-  ranger: {
+  tech: {
     armor: '#1e3a8a',
     armorDark: '#0f172a',
     armorLight: '#3b82f6',
@@ -1318,7 +1317,7 @@ const PLAYER_PALETTES: Record<PlayerTheme, PlayerPalette> = {
     glow: '#67e8f9',
     visor: '#ecfeff',
   },
-  voyager: {
+  eclipse: {
     armor: '#7e22ce',
     armorDark: '#3b0764',
     armorLight: '#c026d3',
@@ -1334,7 +1333,7 @@ const PLAYER_PALETTES: Record<PlayerTheme, PlayerPalette> = {
     glow: '#7dd3fc',
     visor: '#e0f2fe',
   },
-  pilot: {
+  astronaut: {
     armor: '#e2e8f0',
     armorDark: '#334155',
     armorLight: '#f8fafc',
@@ -1342,16 +1341,30 @@ const PLAYER_PALETTES: Record<PlayerTheme, PlayerPalette> = {
     glow: '#38bdf8',
     visor: '#bae6fd',
   },
-}
-
-// The same Orbit Ranger silhouette is preserved across the campaign while
-// materials and equipment evolve to match each ten-stage visual chapter.
-function getPlayerTheme(stageIndex: number): PlayerTheme {
-  if (stageIndex < 10) return 'explorer'
-  if (stageIndex < 20) return 'ranger'
-  if (stageIndex < 30) return 'voyager'
-  if (stageIndex < 40) return 'diver'
-  return 'pilot'
+  fireguard: {
+    armor: '#dc2626',
+    armorDark: '#450a0a',
+    armorLight: '#fb923c',
+    accent: '#fde047',
+    glow: '#f97316',
+    visor: '#fef3c7',
+  },
+  hazmat: {
+    armor: '#ca8a04',
+    armorDark: '#365314',
+    armorLight: '#facc15',
+    accent: '#84cc16',
+    glow: '#bef264',
+    visor: '#ecfccb',
+  },
+  alpine: {
+    armor: '#0f766e',
+    armorDark: '#134e4a',
+    armorLight: '#5eead4',
+    accent: '#f8fafc',
+    glow: '#a5f3fc',
+    visor: '#ecfeff',
+  },
 }
 
 function drawPlayerShip(
@@ -1398,9 +1411,9 @@ function drawPlayerShip(
   ctx.restore()
 
   // Theme-specific equipment remains behind the shared silhouette.
-  if (theme === 'explorer') {
+  if (theme === 'traveler' || theme === 'alpine') {
     ctx.fillStyle = palette.accent
-    ctx.strokeStyle = '#431407'
+    ctx.strokeStyle = theme === 'alpine' ? '#164e63' : '#431407'
     ctx.lineWidth = 2
     ctx.beginPath()
     ctx.moveTo(x - facing * 7, helmetY + 7)
@@ -1414,7 +1427,14 @@ function drawPlayerShip(
     ctx.closePath()
     ctx.fill()
     ctx.stroke()
-  } else if (theme === 'ranger') {
+    if (theme === 'traveler') {
+      ctx.fillStyle = '#78350f'
+      ctx.beginPath()
+      ctx.roundRect(x - facing * 17 - 5, bodyY - 3, 10, 13, 3)
+      ctx.fill()
+      ctx.stroke()
+    }
+  } else if (theme === 'tech') {
     ctx.save()
     ctx.strokeStyle = palette.glow
     ctx.shadowColor = palette.glow
@@ -1431,7 +1451,7 @@ function drawPlayerShip(
       ctx.fill()
     }
     ctx.restore()
-  } else if (theme === 'voyager') {
+  } else if (theme === 'eclipse') {
     ctx.save()
     ctx.strokeStyle = palette.glow
     ctx.shadowColor = palette.glow
@@ -1462,6 +1482,31 @@ function drawPlayerShip(
       ctx.stroke()
     }
     ctx.restore()
+  } else if (theme === 'fireguard') {
+    ctx.fillStyle = palette.armorDark
+    ctx.strokeStyle = palette.accent
+    ctx.lineWidth = 2
+    for (const side of [-1, 1]) {
+      ctx.beginPath()
+      ctx.moveTo(x + side * 10, bodyY - 8)
+      ctx.lineTo(x + side * 24, bodyY - 4)
+      ctx.lineTo(x + side * 18, bodyY + 8)
+      ctx.lineTo(x + side * 11, bodyY + 5)
+      ctx.closePath()
+      ctx.fill()
+      ctx.stroke()
+    }
+  } else if (theme === 'hazmat') {
+    ctx.fillStyle = '#3f6212'
+    ctx.strokeStyle = palette.glow
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.roundRect(x - facing * 20, bodyY - 11, 13, 22, 5)
+    ctx.fill()
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.arc(x - facing * 11, helmetY + 5, 13, 0.6, 2.5)
+    ctx.stroke()
   } else {
     const jet = 7 + Math.sin(time / 45) * 2
     ctx.fillStyle = palette.accent
@@ -1624,6 +1669,69 @@ function drawPlayerShip(
   ctx.globalAlpha *= 0.75
   ctx.fillRect(visorX - 5, helmetY + 0.5, 6, 1.5)
   ctx.globalAlpha = isInvuln ? (Math.sin(time / 55) > -0.15 ? 1 : 0.52) : 1
+
+  // Chapter equipment remains readable even when the palette is seen over a
+  // similarly colored background.
+  if (theme === 'diver') {
+    ctx.strokeStyle = '#bae6fd'
+    ctx.lineWidth = 2.5
+    ctx.beginPath()
+    ctx.arc(x, helmetY, 14.5, 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.fillStyle = '#facc15'
+    ctx.fillRect(x - 15, helmetY - 2, 3, 7)
+    ctx.fillRect(x + 12, helmetY - 2, 3, 7)
+  } else if (theme === 'astronaut') {
+    ctx.strokeStyle = '#94a3b8'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.arc(x, helmetY, 15, Math.PI * 0.1, Math.PI * 0.9, true)
+    ctx.stroke()
+    ctx.strokeStyle = palette.glow
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.arc(x - facing * 9, helmetY + 7, 8, 0.5, 2.2)
+    ctx.stroke()
+  } else if (theme === 'alpine') {
+    ctx.fillStyle = '#f8fafc'
+    ctx.strokeStyle = '#164e63'
+    ctx.lineWidth = 1.5
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath()
+      ctx.arc(x + i * 5, helmetY + 9, 3.5, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.stroke()
+    }
+  } else if (theme === 'hazmat') {
+    ctx.strokeStyle = palette.accent
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.arc(x, helmetY, 15, Math.PI, 0)
+    ctx.stroke()
+    ctx.fillStyle = '#1a2e05'
+    for (const dotX of [-5, 0, 5]) {
+      ctx.beginPath()
+      ctx.arc(x + dotX, helmetY + 9, 1.5, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  } else if (theme === 'fireguard') {
+    ctx.strokeStyle = palette.accent
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(x - 10, helmetY - 9)
+    ctx.lineTo(x, helmetY - 14)
+    ctx.lineTo(x + 10, helmetY - 9)
+    ctx.stroke()
+  } else if (theme === 'tech' || theme === 'eclipse') {
+    ctx.strokeStyle = palette.glow
+    ctx.shadowColor = palette.glow
+    ctx.shadowBlur = 6
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.arc(x, helmetY, 16, -0.4, Math.PI + 0.4)
+    ctx.stroke()
+    ctx.shadowBlur = 0
+  }
 
   // Centered cable launcher aligns exactly with the physics projectile.
   ctx.fillStyle = '#0f172a'
@@ -3644,7 +3752,10 @@ function GamePlay({
         ctx,
         playerXRef.current,
         playerY,
-        getPlayerTheme(stageIndex),
+        getPlayerTheme(
+          stageIndex,
+          STAGE_NAMES[stageIndex % STAGE_NAMES.length],
+        ),
         isInvuln,
         time,
         playerFacingRef.current,
