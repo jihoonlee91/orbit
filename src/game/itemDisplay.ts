@@ -28,6 +28,7 @@ export const ITEM_COLORS: Record<ItemType, string> = {
   pierce: '#eab308',
   starBalloon: '#fde047',
   diagonalWire: '#38bdf8',
+  spikeArmor: '#f472b6',
 }
 
 export const ITEM_TITLES: Record<ItemType, string> = {
@@ -58,6 +59,7 @@ export const ITEM_TITLES: Record<ItemType, string> = {
   pierce: 'Piercer',
   starBalloon: 'Star Balloon',
   diagonalWire: 'Diagonal Wire',
+  spikeArmor: 'Spike Armor',
 }
 
 export const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
@@ -89,6 +91,7 @@ export const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
   pierce: '8초 동안 작살이 장애물을 뚫고 계속 날아갑니다.',
   starBalloon: '화면의 모든 공을 즉시 제거하고 점수를 얻습니다.',
   diagonalWire: '10초 동안 작살이 좌우 45도 대각선으로 2발 발사됩니다.',
+  spikeArmor: '8초 동안 공에 몸으로 닿으면 피해 대신 공을 터뜨립니다.',
 }
 
 function traceShield(ctx: CanvasRenderingContext2D, scale = 1) {
@@ -568,6 +571,24 @@ export function drawFallingItemIcon(
         ctx.closePath()
         ctx.fill()
         ctx.restore()
+      }
+      break
+    case 'spikeArmor':
+      ctx.beginPath()
+      ctx.arc(0, 0, 9, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.stroke()
+      ctx.fillStyle = '#fff1f5'
+      for (let i = 0; i < 8; i += 1) {
+        const angle = (Math.PI / 4) * i
+        const baseAngle1 = angle - 0.22
+        const baseAngle2 = angle + 0.22
+        ctx.beginPath()
+        ctx.moveTo(Math.cos(angle) * 15, Math.sin(angle) * 15)
+        ctx.lineTo(Math.cos(baseAngle1) * 8, Math.sin(baseAngle1) * 8)
+        ctx.lineTo(Math.cos(baseAngle2) * 8, Math.sin(baseAngle2) * 8)
+        ctx.closePath()
+        ctx.fill()
       }
       break
   }

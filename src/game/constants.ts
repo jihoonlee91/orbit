@@ -337,6 +337,7 @@ export const ITEM_WEIGHTS: [ItemType, number][] = [
   ['pierce', 10],
   ['starBalloon', 3],
   ['diagonalWire', 12],
+  ['spikeArmor', 7],
 ]
 
 // Vulcan (rapid-fire) was originally always in the pool, but it trivializes
@@ -478,6 +479,11 @@ export const PIERCE_DURATION_MS = 8000
 // the added sideways component.
 export const DIAGONAL_WIRE_DURATION_MS = 10000
 export const DIAGONAL_HARPOON_VX = 220
+// While active, touching a ball with the player's own body pops it
+// (split + score, like a harpoon hit) instead of costing HP — an
+// offensive twist on Invincible/Barrier rather than another pure
+// defensive buff.
+export const SPIKE_ARMOR_DURATION_MS = 8000
 
 // Golden Ball: a small universal chance for a stage's initial balls to
 // spawn golden instead of their normal color. Popping one (at any size)

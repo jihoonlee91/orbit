@@ -61,6 +61,7 @@ import {
   PIERCE_DURATION_MS,
   DIAGONAL_WIRE_DURATION_MS,
   DIAGONAL_HARPOON_VX,
+  SPIKE_ARMOR_DURATION_MS,
   GOLDEN_BALL_CHANCE,
   GOLDEN_BALL_SCORE_MULTIPLIER,
   getItemWeights,
@@ -217,6 +218,7 @@ const ITEM_LABELS: Record<ItemType, string> = {
   pierce: 'R',
   starBalloon: '*',
   diagonalWire: 'X',
+  spikeArmor: 'Y',
 }
 
 const BUFF_LABELS: Record<
@@ -239,7 +241,8 @@ const BUFF_LABELS: Record<
   | 'lockOn'
   | 'overdrive'
   | 'pierce'
-  | 'diagonalWire',
+  | 'diagonalWire'
+  | 'spikeArmor',
   string
 > = {
   doubleWire: 'Double Wire',
@@ -262,6 +265,7 @@ const BUFF_LABELS: Record<
   overdrive: 'Overdrive (x1.5 Score)',
   pierce: 'Piercer',
   diagonalWire: 'Diagonal Wire',
+  spikeArmor: 'Spike Armor',
 }
 
 // Timed buffs start blinking in the HUD once this many seconds remain, so
@@ -289,6 +293,7 @@ const TIMED_BUFF_KEYS = [
   'overdrive',
   'pierce',
   'diagonalWire',
+  'spikeArmor',
 ] as const
 
 const ITEM_ANNOUNCEMENTS: Record<ItemType, string> = {
@@ -319,6 +324,7 @@ const ITEM_ANNOUNCEMENTS: Record<ItemType, string> = {
   pierce: 'Piercer!',
   starBalloon: 'Star Balloon!',
   diagonalWire: 'Diagonal Wire!',
+  spikeArmor: 'Spike Armor!',
 }
 
 type Particle = {
@@ -1947,6 +1953,7 @@ type BuffDisplay = {
   overdrive: number
   pierce: number
   diagonalWire: number
+  spikeArmor: number
 }
 
 const NO_BUFFS: BuffDisplay = {
@@ -1971,6 +1978,7 @@ const NO_BUFFS: BuffDisplay = {
   overdrive: 0,
   pierce: 0,
   diagonalWire: 0,
+  spikeArmor: 0,
 }
 
 function GamePlay({
@@ -2116,6 +2124,7 @@ function GamePlay({
   const overdriveUntilRef = useRef(0)
   const pierceUntilRef = useRef(0)
   const diagonalWireUntilRef = useRef(0)
+  const spikeArmorUntilRef = useRef(0)
   const barrierCountRef = useRef(0)
   const portalCooldownsRef = useRef(new Map<number, number>())
   const buffsDisplayRef = useRef<BuffDisplay>(NO_BUFFS)
@@ -2184,6 +2193,7 @@ function GamePlay({
       overdriveUntilRef.current = 0
       pierceUntilRef.current = 0
       diagonalWireUntilRef.current = 0
+      spikeArmorUntilRef.current = 0
       barrierCountRef.current = 0
       portalCooldownsRef.current.clear()
       hiddenFinaleStartedAtRef.current = performance.now()
@@ -2277,6 +2287,7 @@ function GamePlay({
     overdriveUntilRef.current += pausedFor
     pierceUntilRef.current += pausedFor
     diagonalWireUntilRef.current += pausedFor
+    spikeArmorUntilRef.current += pausedFor
     lastHitAtRef.current += pausedFor
     hiddenFinaleStartedAtRef.current += pausedFor
     harpoonsRef.current = harpoonsRef.current.map((harpoon) => ({
@@ -2577,6 +2588,7 @@ function GamePlay({
           const isOverdriveActive = time < overdriveUntilRef.current
           const isPierceActive = time < pierceUntilRef.current
           const isDiagonalActive = time < diagonalWireUntilRef.current
+          const isSpikeArmorActive = time < spikeArmorUntilRef.current
           const isSolarFlareActive =
             getSolarFlareState(solarFlare, time) === 'active'
           const playerSpeed =
@@ -3333,12 +3345,59 @@ function GamePlay({
                 )
               }) ??
                 false)
-            const hit =
-              hitByFireZone ||
-              hitByAcidRain ||
+            // Spike Armor turns body contact into an attack instead of
+            // damage — it only changes what touching a BALL does; fire
+            // zones and acid rain still hurt normally, spikes don't help
+            // against those.
+            const touchingBalls = isSpikeArmorActive
+              ? ballsRef.current.filter((b) =>
+                  ballHitsPlayer(b, playerXRef.current, playerYRef.current),
+                )
+              : []
+            const hitByBall =
+              !isSpikeArmorActive &&
               ballsRef.current.some((b) =>
                 ballHitsPlayer(b, playerXRef.current, playerYRef.current),
               )
+            if (touchingBalls.length > 0) {
+              invulnUntilRef.current = time + INVULN_MS
+              const touchingIds = new Set(touchingBalls.map((b) => b.id))
+              let spikeGained = 0
+              const spikeChildren: Ball[] = []
+              for (const b of touchingBalls) {
+                spawnBurst(
+                  particlesRef.current,
+                  b.x,
+                  b.y,
+                  b.golden ? '#facc15' : '#f472b6',
+                )
+                const gained = Math.round(
+                  SCORE_BY_LEVEL[b.level] *
+                    (1 + comboRef.current * 0.1) *
+                    (isNovaSurgeActive ? NOVA_SURGE_MULTIPLIER : 1) *
+                    (isOverdriveActive ? OVERDRIVE_SCORE_MULTIPLIER : 1) *
+                    (b.golden ? GOLDEN_BALL_SCORE_MULTIPLIER : 1),
+                )
+                spikeGained += gained
+                popupsRef.current.push({
+                  x: b.x,
+                  y: b.y,
+                  text: b.golden ? `GOLDEN +${gained}` : `+${gained}`,
+                  life: 700,
+                  maxLife: 700,
+                  color: '#f472b6',
+                })
+                spikeChildren.push(...splitBall(b, nextId))
+              }
+              scoreRef.current = addToTotalScore(scoreRef.current, spikeGained)
+              setScore(scoreRef.current)
+              ballsRef.current = [
+                ...ballsRef.current.filter((b) => !touchingIds.has(b.id)),
+                ...spikeChildren,
+              ]
+              playHitSound(1)
+            }
+            const hit = hitByFireZone || hitByAcidRain || hitByBall
             if (hit) {
               invulnUntilRef.current = time + INVULN_MS
               if (barrierCountRef.current > 0) {
@@ -3481,6 +3540,9 @@ function GamePlay({
                 break
               case 'invincible':
                 invincibleUntilRef.current = time + INVINCIBLE_DURATION_MS
+                break
+              case 'spikeArmor':
+                spikeArmorUntilRef.current = time + SPIKE_ARMOR_DURATION_MS
                 break
               case 'timePlus':
                 timeRemainingRef.current += TIME_PLUS_SECONDS
@@ -3689,6 +3751,10 @@ function GamePlay({
             0,
             Math.ceil((diagonalWireUntilRef.current - time) / 1000),
           )
+          const spikeArmorSec = Math.max(
+            0,
+            Math.ceil((spikeArmorUntilRef.current - time) / 1000),
+          )
           const barrierCount = barrierCountRef.current
           const prevBuffs = buffsDisplayRef.current
           if (
@@ -3712,6 +3778,7 @@ function GamePlay({
             prevBuffs.overdrive !== overdriveSec ||
             prevBuffs.pierce !== pierceSec ||
             prevBuffs.diagonalWire !== diagonalWireSec ||
+            prevBuffs.spikeArmor !== spikeArmorSec ||
             prevBuffs.barrier !== barrierCount
           ) {
             const nextBuffs: BuffDisplay = {
@@ -3735,6 +3802,7 @@ function GamePlay({
               overdrive: overdriveSec,
               pierce: pierceSec,
               diagonalWire: diagonalWireSec,
+              spikeArmor: spikeArmorSec,
               barrier: barrierCount,
             }
             buffsDisplayRef.current = nextBuffs
