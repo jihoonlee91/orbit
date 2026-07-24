@@ -27,6 +27,7 @@ export const ITEM_COLORS: Record<ItemType, string> = {
   overdrive: '#ef4444',
   pierce: '#eab308',
   starBalloon: '#fde047',
+  diagonalWire: '#38bdf8',
 }
 
 export const ITEM_TITLES: Record<ItemType, string> = {
@@ -56,6 +57,7 @@ export const ITEM_TITLES: Record<ItemType, string> = {
   overdrive: 'Overdrive',
   pierce: 'Piercer',
   starBalloon: 'Star Balloon',
+  diagonalWire: 'Diagonal Wire',
 }
 
 export const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
@@ -86,6 +88,7 @@ export const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
   overdrive: '8초 동안 모든 hazard 피해를 막고 점수를 1.5배로 획득합니다.',
   pierce: '8초 동안 작살이 장애물을 뚫고 계속 날아갑니다.',
   starBalloon: '화면의 모든 공을 즉시 제거하고 점수를 얻습니다.',
+  diagonalWire: '10초 동안 작살이 좌우 45도 대각선으로 2발 발사됩니다.',
 }
 
 function traceShield(ctx: CanvasRenderingContext2D, scale = 1) {
@@ -547,5 +550,25 @@ export function drawFallingItemIcon(
       ctx.fill()
       break
     }
+    case 'diagonalWire':
+      for (const dir of [-1, 1]) {
+        ctx.save()
+        ctx.rotate((dir * Math.PI) / 4)
+        ctx.lineWidth = 3
+        ctx.strokeStyle = color
+        ctx.beginPath()
+        ctx.moveTo(0, 10)
+        ctx.lineTo(0, -8)
+        ctx.stroke()
+        ctx.fillStyle = '#fef08a'
+        ctx.beginPath()
+        ctx.moveTo(0, -13)
+        ctx.lineTo(-5, -5)
+        ctx.lineTo(5, -5)
+        ctx.closePath()
+        ctx.fill()
+        ctx.restore()
+      }
+      break
   }
 }

@@ -59,6 +59,8 @@ import {
   OVERDRIVE_DURATION_MS,
   OVERDRIVE_SCORE_MULTIPLIER,
   PIERCE_DURATION_MS,
+  DIAGONAL_WIRE_DURATION_MS,
+  DIAGONAL_HARPOON_VX,
   GOLDEN_BALL_CHANCE,
   GOLDEN_BALL_SCORE_MULTIPLIER,
   getItemWeights,
@@ -214,6 +216,7 @@ const ITEM_LABELS: Record<ItemType, string> = {
   overdrive: 'O',
   pierce: 'R',
   starBalloon: '*',
+  diagonalWire: 'X',
 }
 
 const BUFF_LABELS: Record<
@@ -235,7 +238,8 @@ const BUFF_LABELS: Record<
   | 'visor'
   | 'lockOn'
   | 'overdrive'
-  | 'pierce',
+  | 'pierce'
+  | 'diagonalWire',
   string
 > = {
   doubleWire: 'Double Wire',
@@ -257,6 +261,7 @@ const BUFF_LABELS: Record<
   lockOn: 'Lock-On',
   overdrive: 'Overdrive (x1.5 Score)',
   pierce: 'Piercer',
+  diagonalWire: 'Diagonal Wire',
 }
 
 // Timed buffs start blinking in the HUD once this many seconds remain, so
@@ -283,6 +288,7 @@ const TIMED_BUFF_KEYS = [
   'lockOn',
   'overdrive',
   'pierce',
+  'diagonalWire',
 ] as const
 
 const ITEM_ANNOUNCEMENTS: Record<ItemType, string> = {
@@ -312,6 +318,7 @@ const ITEM_ANNOUNCEMENTS: Record<ItemType, string> = {
   overdrive: 'Overdrive!',
   pierce: 'Piercer!',
   starBalloon: 'Star Balloon!',
+  diagonalWire: 'Diagonal Wire!',
 }
 
 type Particle = {
@@ -865,6 +872,38 @@ function drawHarpoon(
       )
       ctx.stroke()
     }
+    ctx.restore()
+    return
+  }
+
+  if (harpoon.kind === 'diagonal') {
+    // Rendered as a short dart (like Vulcan's bolt) rather than a rope
+    // trailing back to the player — it travels fast enough, and off-axis
+    // enough, that a persistent trail would need to track its launch x
+    // separately from its current x, which nothing else stores.
+    const angle = Math.atan2(-HARPOON_SPEED, harpoon.vx ?? 0)
+    ctx.save()
+    ctx.translate(harpoon.x, harpoon.y)
+    ctx.rotate(angle + Math.PI / 2)
+    ctx.shadowColor = '#38bdf8'
+    ctx.shadowBlur = 10
+    ctx.fillStyle = '#0c4a6e'
+    ctx.beginPath()
+    ctx.moveTo(0, -14)
+    ctx.lineTo(-4, 6)
+    ctx.lineTo(4, 6)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = '#7dd3fc'
+    ctx.beginPath()
+    ctx.moveTo(0, -12)
+    ctx.lineTo(-6, -2)
+    ctx.lineTo(6, -2)
+    ctx.closePath()
+    ctx.fill()
+    ctx.strokeStyle = '#f0f9ff'
+    ctx.lineWidth = 1.2
+    ctx.stroke()
     ctx.restore()
     return
   }
@@ -1907,6 +1946,7 @@ type BuffDisplay = {
   lockOn: number
   overdrive: number
   pierce: number
+  diagonalWire: number
 }
 
 const NO_BUFFS: BuffDisplay = {
@@ -1930,6 +1970,7 @@ const NO_BUFFS: BuffDisplay = {
   lockOn: 0,
   overdrive: 0,
   pierce: 0,
+  diagonalWire: 0,
 }
 
 function GamePlay({
@@ -2074,6 +2115,7 @@ function GamePlay({
   const lockOnUntilRef = useRef(0)
   const overdriveUntilRef = useRef(0)
   const pierceUntilRef = useRef(0)
+  const diagonalWireUntilRef = useRef(0)
   const barrierCountRef = useRef(0)
   const portalCooldownsRef = useRef(new Map<number, number>())
   const buffsDisplayRef = useRef<BuffDisplay>(NO_BUFFS)
@@ -2141,6 +2183,7 @@ function GamePlay({
       lockOnUntilRef.current = 0
       overdriveUntilRef.current = 0
       pierceUntilRef.current = 0
+      diagonalWireUntilRef.current = 0
       barrierCountRef.current = 0
       portalCooldownsRef.current.clear()
       hiddenFinaleStartedAtRef.current = performance.now()
@@ -2233,6 +2276,7 @@ function GamePlay({
     lockOnUntilRef.current += pausedFor
     overdriveUntilRef.current += pausedFor
     pierceUntilRef.current += pausedFor
+    diagonalWireUntilRef.current += pausedFor
     lastHitAtRef.current += pausedFor
     hiddenFinaleStartedAtRef.current += pausedFor
     harpoonsRef.current = harpoonsRef.current.map((harpoon) => ({
@@ -2532,6 +2576,7 @@ function GamePlay({
           const isLockOnActive = time < lockOnUntilRef.current
           const isOverdriveActive = time < overdriveUntilRef.current
           const isPierceActive = time < pierceUntilRef.current
+          const isDiagonalActive = time < diagonalWireUntilRef.current
           const isSolarFlareActive =
             getSolarFlareState(solarFlare, time) === 'active'
           const playerSpeed =
@@ -2542,7 +2587,7 @@ function GamePlay({
               : 1)
           const maxHarpoons = isVulcanActive
             ? MAX_VULCAN_SHOTS
-            : time < doubleWireUntilRef.current
+            : isDiagonalActive || time < doubleWireUntilRef.current
               ? MAX_HARPOONS_DOUBLE_WIRE
               : MAX_HARPOONS_DEFAULT
           const windAx = isStabilizerActive
@@ -3008,29 +3053,41 @@ function GamePlay({
             fireCooldownReady &&
             harpoonsRef.current.length < maxHarpoons
           ) {
-            const newHarpoon: Harpoon = isPowerWireActive
-              ? {
-                  x: playerXRef.current,
-                  y: getPowerHarpoonStopY(
-                    playerXRef.current,
-                    activePlatforms,
-                    playerYRef.current,
-                  ),
-                  baseY: playerYRef.current,
-                  kind: 'powerWire',
-                  expiresAt: time + POWER_WIRE_STAY_MS,
-                }
-              : {
-                  x: playerXRef.current,
-                  y: playerYRef.current,
-                  baseY: playerYRef.current,
-                  kind: isVulcanActive
-                    ? 'vulcan'
-                    : isPierceActive
-                      ? 'pierce'
-                      : 'normal',
-                }
-            harpoonsRef.current = [...harpoonsRef.current, newHarpoon]
+            const newHarpoons: Harpoon[] = isPowerWireActive
+              ? [
+                  {
+                    x: playerXRef.current,
+                    y: getPowerHarpoonStopY(
+                      playerXRef.current,
+                      activePlatforms,
+                      playerYRef.current,
+                    ),
+                    baseY: playerYRef.current,
+                    kind: 'powerWire',
+                    expiresAt: time + POWER_WIRE_STAY_MS,
+                  },
+                ]
+              : isDiagonalActive
+                ? [-1, 1].map((dir) => ({
+                    x: playerXRef.current,
+                    y: playerYRef.current,
+                    baseY: playerYRef.current,
+                    kind: 'diagonal' as const,
+                    vx: dir * DIAGONAL_HARPOON_VX,
+                  }))
+                : [
+                    {
+                      x: playerXRef.current,
+                      y: playerYRef.current,
+                      baseY: playerYRef.current,
+                      kind: isVulcanActive
+                        ? ('vulcan' as const)
+                        : isPierceActive
+                          ? ('pierce' as const)
+                          : ('normal' as const),
+                    },
+                  ]
+            harpoonsRef.current = [...harpoonsRef.current, ...newHarpoons]
             lastFireAtRef.current = time
           }
           fireRequestedRef.current = false
@@ -3039,7 +3096,11 @@ function GamePlay({
             if (harpoon.kind === 'powerWire') return harpoon
             const speed =
               harpoon.kind === 'vulcan' ? VULCAN_SPEED : HARPOON_SPEED
-            return { ...harpoon, y: harpoon.y - speed * dtSec }
+            return {
+              ...harpoon,
+              x: harpoon.x + (harpoon.vx ?? 0) * dtSec,
+              y: harpoon.y - speed * dtSec,
+            }
           })
 
           // A harpoon (any kind except Power Wire, which never travels)
@@ -3082,6 +3143,14 @@ function GamePlay({
               return (harpoon.expiresAt ?? 0) > time
             }
             if (harpoon.kind === 'pierce') return harpoon.y > 0
+            if (harpoon.kind === 'diagonal') {
+              return (
+                harpoon.y > 0 &&
+                harpoon.x > 0 &&
+                harpoon.x < CANVAS_WIDTH &&
+                !harpoonHitsObstacle(harpoon.x, harpoon.y, activePlatforms)
+              )
+            }
             return (
               harpoon.y > 0 &&
               !harpoonHitsObstacle(harpoon.x, harpoon.y, activePlatforms)
@@ -3152,7 +3221,13 @@ function GamePlay({
                   h.x,
                   h.y,
                   b,
-                  h.kind === 'vulcan' ? h.y : (h.baseY ?? PLAYER_Y),
+                  // Vulcan and diagonal both move too fast/off-axis for
+                  // the usual "wire drawn from the player up to here"
+                  // segment model to make sense — collapsing baseY to
+                  // the tip's own y turns the segment into a point.
+                  h.kind === 'vulcan' || h.kind === 'diagonal'
+                    ? h.y
+                    : (h.baseY ?? PLAYER_Y),
                 ),
               )
               if (hitIndex === -1) {
@@ -3354,17 +3429,27 @@ function GamePlay({
                 doubleWireUntilRef.current = time + DOUBLE_WIRE_DURATION_MS
                 powerWireUntilRef.current = 0
                 vulcanUntilRef.current = 0
+                diagonalWireUntilRef.current = 0
                 break
               case 'powerWire':
                 powerWireUntilRef.current = time + POWER_WIRE_DURATION_MS
                 doubleWireUntilRef.current = 0
                 vulcanUntilRef.current = 0
+                diagonalWireUntilRef.current = 0
                 harpoonsRef.current = []
                 break
               case 'vulcan':
                 vulcanUntilRef.current = time + VULCAN_DURATION_MS
                 doubleWireUntilRef.current = 0
                 powerWireUntilRef.current = 0
+                diagonalWireUntilRef.current = 0
+                harpoonsRef.current = []
+                break
+              case 'diagonalWire':
+                diagonalWireUntilRef.current = time + DIAGONAL_WIRE_DURATION_MS
+                doubleWireUntilRef.current = 0
+                powerWireUntilRef.current = 0
+                vulcanUntilRef.current = 0
                 harpoonsRef.current = []
                 break
               case 'clock':
@@ -3600,6 +3685,10 @@ function GamePlay({
             0,
             Math.ceil((pierceUntilRef.current - time) / 1000),
           )
+          const diagonalWireSec = Math.max(
+            0,
+            Math.ceil((diagonalWireUntilRef.current - time) / 1000),
+          )
           const barrierCount = barrierCountRef.current
           const prevBuffs = buffsDisplayRef.current
           if (
@@ -3622,6 +3711,7 @@ function GamePlay({
             prevBuffs.lockOn !== lockOnSec ||
             prevBuffs.overdrive !== overdriveSec ||
             prevBuffs.pierce !== pierceSec ||
+            prevBuffs.diagonalWire !== diagonalWireSec ||
             prevBuffs.barrier !== barrierCount
           ) {
             const nextBuffs: BuffDisplay = {
@@ -3644,6 +3734,7 @@ function GamePlay({
               lockOn: lockOnSec,
               overdrive: overdriveSec,
               pierce: pierceSec,
+              diagonalWire: diagonalWireSec,
               barrier: barrierCount,
             }
             buffsDisplayRef.current = nextBuffs

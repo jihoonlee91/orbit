@@ -336,6 +336,7 @@ export const ITEM_WEIGHTS: [ItemType, number][] = [
   ['shockwave', 6],
   ['pierce', 10],
   ['starBalloon', 3],
+  ['diagonalWire', 12],
 ]
 
 // Vulcan (rapid-fire) was originally always in the pool, but it trivializes
@@ -470,6 +471,13 @@ export const LOCK_ON_DURATION_MS = 8000
 export const OVERDRIVE_DURATION_MS = 8000
 export const OVERDRIVE_SCORE_MULTIPLIER = 1.5
 export const PIERCE_DURATION_MS = 8000
+// Pang!3's Sheila callback: fires two 45-degree harpoons instead of one
+// vertical one. Distinct from Power Wire (an instant full-height wall) —
+// this is a genuinely different attack angle, not another vertical-wire
+// variant. Rise speed matches the normal harpoon; DIAGONAL_HARPOON_VX is
+// the added sideways component.
+export const DIAGONAL_WIRE_DURATION_MS = 10000
+export const DIAGONAL_HARPOON_VX = 220
 
 // Golden Ball: a small universal chance for a stage's initial balls to
 // spawn golden instead of their normal color. Popping one (at any size)

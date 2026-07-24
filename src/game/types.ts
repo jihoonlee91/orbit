@@ -12,8 +12,11 @@ export type Harpoon = {
   x: number
   y: number
   baseY?: number
-  kind?: 'normal' | 'powerWire' | 'vulcan' | 'pierce'
+  kind?: 'normal' | 'powerWire' | 'vulcan' | 'pierce' | 'diagonal'
   expiresAt?: number
+  // Horizontal speed — only 'diagonal' harpoons have this; every other
+  // kind travels straight up at a fixed x.
+  vx?: number
 }
 
 export type ItemType =
@@ -43,6 +46,7 @@ export type ItemType =
   | 'overdrive'
   | 'pierce'
   | 'starBalloon'
+  | 'diagonalWire'
 
 export type Item = {
   id: number
