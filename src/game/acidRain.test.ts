@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ACID_RAIN_START_STAGE,
   ACID_RAIN_STAGE_COUNT,
+  getAcidRainSecondsUntilActive,
   getAcidRainState,
   getAcidRainWarningProgress,
   getStageAcidRainZones,
@@ -75,5 +76,29 @@ describe('getAcidRainWarningProgress', () => {
 
   it('clamps to 1 once past impact, while active', () => {
     expect(getAcidRainWarningProgress(zone, 3000)).toBe(1)
+  })
+})
+
+describe('getAcidRainSecondsUntilActive', () => {
+  const zone = { x: 100, width: 100, periodMs: 3200, phaseMs: 0 }
+  // warningStart = 1400, activeStart = 2300
+
+  it('counts down the full period while dormant', () => {
+    expect(getAcidRainSecondsUntilActive(zone, 0)).toBeCloseTo(2.3)
+  })
+
+  it('counts down through the warning telegraph', () => {
+    expect(getAcidRainSecondsUntilActive(zone, 1900)).toBeCloseTo(0.4)
+  })
+
+  it('is 0 the instant it lands and while active', () => {
+    expect(getAcidRainSecondsUntilActive(zone, 2300)).toBe(0)
+    expect(getAcidRainSecondsUntilActive(zone, 3000)).toBe(0)
+  })
+
+  it('decreases monotonically as impact approaches', () => {
+    expect(getAcidRainSecondsUntilActive(zone, 1900)).toBeLessThan(
+      getAcidRainSecondsUntilActive(zone, 1500),
+    )
   })
 })

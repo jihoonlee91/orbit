@@ -108,6 +108,21 @@ export function getFireZoneState(
   return 'dormant'
 }
 
+// Exact seconds until this zone next ignites — 0 while already active.
+// The cycle is fully deterministic (fixed period/phase), so a caller that
+// knows elapsedMs can plan around ignition precisely instead of treating
+// the whole warning telegraph as an immediate, undifferentiated threat
+// (used by the AI's dodge planner to size how urgently to react).
+export function getFireZoneSecondsUntilActive(
+  zone: FireZone,
+  elapsedMs: number,
+): number {
+  const t = cyclePosition(zone, elapsedMs)
+  const activeStart = zone.periodMs - ACTIVE_MS
+  if (t >= activeStart) return 0
+  return (activeStart - t) / 1000
+}
+
 // 0 at the start of the warning telegraph, 1 the instant it ignites — lets
 // the renderer grow the preview glow so the buildup itself reads as a
 // countdown, not just a static blinking strip.

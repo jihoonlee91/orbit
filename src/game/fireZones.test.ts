@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   FIRE_ZONE_START_STAGE,
   FIRE_ZONE_STAGE_COUNT,
+  getFireZoneSecondsUntilActive,
   getFireZoneState,
   getFireZoneWarningProgress,
   getStageFireZones,
@@ -75,5 +76,29 @@ describe('getFireZoneWarningProgress', () => {
 
   it('clamps to 1 once past ignition, while active', () => {
     expect(getFireZoneWarningProgress(zone, 2900)).toBe(1)
+  })
+})
+
+describe('getFireZoneSecondsUntilActive', () => {
+  const zone = { x: 100, width: 100, periodMs: 3000, phaseMs: 0 }
+  // warningStart = 1350, activeStart = 2150 (see getFireZoneState tests)
+
+  it('counts down the full period while dormant', () => {
+    expect(getFireZoneSecondsUntilActive(zone, 0)).toBeCloseTo(2.15)
+  })
+
+  it('counts down through the warning telegraph', () => {
+    expect(getFireZoneSecondsUntilActive(zone, 1700)).toBeCloseTo(0.45)
+  })
+
+  it('is 0 the instant it ignites and while active', () => {
+    expect(getFireZoneSecondsUntilActive(zone, 2150)).toBe(0)
+    expect(getFireZoneSecondsUntilActive(zone, 2900)).toBe(0)
+  })
+
+  it('decreases monotonically as ignition approaches', () => {
+    expect(getFireZoneSecondsUntilActive(zone, 1700)).toBeLessThan(
+      getFireZoneSecondsUntilActive(zone, 1400),
+    )
   })
 })

@@ -109,6 +109,19 @@ export function getAcidRainState(
   return 'dormant'
 }
 
+// Exact seconds until this zone next lands — 0 while already active. Same
+// deterministic-cycle reasoning as fireZones.ts's
+// getFireZoneSecondsUntilActive, used by the AI's dodge planner.
+export function getAcidRainSecondsUntilActive(
+  zone: AcidRainZone,
+  elapsedMs: number,
+): number {
+  const t = cyclePosition(zone, elapsedMs)
+  const activeStart = zone.periodMs - ACTIVE_MS
+  if (t >= activeStart) return 0
+  return (activeStart - t) / 1000
+}
+
 // 0 at the start of the warning telegraph, 1 the instant the rain lands —
 // lets the renderer grow a falling-drip preview as a readable countdown.
 export function getAcidRainWarningProgress(

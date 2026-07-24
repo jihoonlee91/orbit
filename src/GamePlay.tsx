@@ -81,6 +81,7 @@ import {
   getStageFireZones,
   getFireZoneState,
   getFireZoneWarningProgress,
+  getFireZoneSecondsUntilActive,
   type FireZone,
 } from './game/fireZones'
 import { getStageGravityScale } from './game/voidGravity'
@@ -88,6 +89,7 @@ import {
   getStageAcidRainZones,
   getAcidRainState,
   getAcidRainWarningProgress,
+  getAcidRainSecondsUntilActive,
   type AcidRainZone,
 } from './game/acidRain'
 import { getStageIceWind, getIceWindPush } from './game/iceWinds'
@@ -2192,7 +2194,13 @@ function GamePlay({
                 itemTargetCatchSec = catchSec
               }
             }
-            const flooded = ballsRef.current.length >= AI_FLOOD_BALL_COUNT
+            // Clock freezes every ball in place and grants the same
+            // damage immunity as Invincible/Overdrive (see the hit-check
+            // gate below), so the "transit exposure" risk flooding exists
+            // to avoid is zero — parking instead of hunting down each
+            // frozen ball would waste the entire window.
+            const flooded =
+              !isClockActive && ballsRef.current.length >= AI_FLOOD_BALL_COUNT
             const desiredX = flooded
               ? playerXRef.current
               : itemTarget !== null
@@ -2217,6 +2225,12 @@ function GamePlay({
               activeHiddenFinalePhase?.fireZones !== undefined
                 ? hiddenFinaleElapsedMs
                 : time
+            // Both cycles are fully deterministic (fixed period/phase), so
+            // the AI plans around the exact ignition time instead of
+            // treating the entire telegraphed warning window as an
+            // immediate threat — a zone that just started warning with
+            // 700ms left is still safe to walk through for a shot; one
+            // 50ms from igniting isn't.
             const fireZoneDangers: DangerZone[] = (
               fireZones ??
               stageChaosFireZones ??
@@ -2229,14 +2243,17 @@ function GamePlay({
               )
               .map((zone) => ({
                 x: zone.x + zone.width / 2,
-                time: 0,
+                time: getFireZoneSecondsUntilActive(
+                  zone,
+                  activeFireZoneElapsedMs,
+                ),
                 radius: zone.width / 2 + PLAYER_WIDTH / 2 + AI_DODGE_BUFFER,
               }))
             const acidRainDangers: DangerZone[] = (acidRainZones ?? [])
               .filter((zone) => getAcidRainState(zone, time) !== 'dormant')
               .map((zone) => ({
                 x: zone.x + zone.width / 2,
-                time: 0,
+                time: getAcidRainSecondsUntilActive(zone, time),
                 radius: zone.width / 2 + PLAYER_WIDTH / 2 + AI_DODGE_BUFFER,
               }))
             // Phase-jumping balls (Quantum Rift) invalidate predictions on
