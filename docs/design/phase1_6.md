@@ -115,3 +115,20 @@ fixed in the same pass:
   there runs through. Candidates are now capped to the honestly
   reachable band per re-plan, so distant goals are approached step by
   safe step instead of committed sprints through traffic.
+
+### Clock aggression and obstacle-aware target order
+
+- Clock is a complete damage-immunity window as well as a physics freeze. The
+  AI therefore ignores every ball-danger lane while Clock is active and walks
+  directly to a verified firing position, including when the frozen ball is
+  already at player height.
+- Target selection includes the shot itself, not only the ball's predicted
+  landing point. For each ball, the AI tests the preferred intercept column,
+  its current column, the player's current column, and nearby platform-edge
+  columns with the real `predictHarpoonHit` simulation.
+- A ball with no obstacle-clear firing column is temporarily removed from the
+  target candidates. The AI attacks another shootable ball instead of parking
+  underneath a platform and repeatedly waiting for an impossible shot.
+- Target cost combines walking time and simulated wire-hit time. Sticky
+  targeting still prevents frame-to-frame thrashing, but only while the old
+  target remains shootable.
