@@ -9,6 +9,13 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.34.0',
+    date: '2026-07-25',
+    notes: [
+      'AI Companion now picks up items too, and shares the effect with you the same way you sharing an effect with it always worked — a genuine helper, not just a second body fighting in parallel.',
+    ],
+  },
+  {
     version: '1.33.0',
     date: '2026-07-25',
     notes: [

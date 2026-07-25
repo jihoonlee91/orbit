@@ -3162,6 +3162,197 @@ function GamePlay({
             }
           }
 
+          // Shared by both the real player and the AI Companion clone — a
+          // pickup applies the same global buff/score/HP effect no matter
+          // which body walked into it, so the clone genuinely helps rather
+          // than just fighting balls in parallel. pickerX/pickerY only
+          // affect where the popup/particle celebration appears. Defined
+          // here (ahead of the companion block below) so the companion's
+          // own pickup check can call it too.
+          const applyItemPickup = (
+            picked: Item,
+            pickerX: number,
+            pickerY: number,
+          ) => {
+            playItemSound()
+            setItemNotice(picked.type)
+            if (itemNoticeTimerRef.current !== null) {
+              window.clearTimeout(itemNoticeTimerRef.current)
+            }
+            itemNoticeTimerRef.current = window.setTimeout(() => {
+              setItemNotice(null)
+              itemNoticeTimerRef.current = null
+            }, 2200)
+            popupsRef.current.push({
+              x: picked.x,
+              y: picked.y - 16,
+              text: ITEM_ANNOUNCEMENTS[picked.type],
+              life: 900,
+              maxLife: 900,
+              color: ITEM_COLORS[picked.type],
+            })
+            spawnPickupCelebration(
+              particlesRef.current,
+              pickupEffectsRef.current,
+              pickerX,
+              pickerY - 4,
+              picked.type,
+            )
+
+            switch (picked.type) {
+              case 'doubleWire':
+                doubleWireUntilRef.current = time + DOUBLE_WIRE_DURATION_MS
+                powerWireUntilRef.current = 0
+                vulcanUntilRef.current = 0
+                diagonalWireUntilRef.current = 0
+                break
+              case 'powerWire':
+                powerWireUntilRef.current = time + POWER_WIRE_DURATION_MS
+                doubleWireUntilRef.current = 0
+                vulcanUntilRef.current = 0
+                diagonalWireUntilRef.current = 0
+                harpoonsRef.current = []
+                break
+              case 'vulcan':
+                vulcanUntilRef.current = time + VULCAN_DURATION_MS
+                doubleWireUntilRef.current = 0
+                powerWireUntilRef.current = 0
+                diagonalWireUntilRef.current = 0
+                harpoonsRef.current = []
+                break
+              case 'diagonalWire':
+                diagonalWireUntilRef.current = time + DIAGONAL_WIRE_DURATION_MS
+                doubleWireUntilRef.current = 0
+                powerWireUntilRef.current = 0
+                vulcanUntilRef.current = 0
+                harpoonsRef.current = []
+                break
+              case 'clock':
+                clockUntilRef.current = time + CLOCK_DURATION_MS
+                break
+              case 'hourglass':
+                hourglassUntilRef.current = time + HOURGLASS_DURATION_MS
+                break
+              case 'barrier':
+                barrierCountRef.current += 1
+                break
+              case 'oneUp':
+                hpRef.current = Math.min(MAX_HP, hpRef.current + 1)
+                setHp(hpRef.current)
+                break
+              case 'dynamite':
+                for (const b of ballsRef.current) {
+                  spawnBurst(
+                    particlesRef.current,
+                    b.x,
+                    b.y,
+                    BALL_COLORS[b.level],
+                  )
+                }
+                ballsRef.current = explodeToSmallest(ballsRef.current, nextId)
+                break
+              case 'speedBoost':
+                speedBoostUntilRef.current = time + SPEED_BOOST_DURATION_MS
+                break
+              case 'invincible':
+                invincibleUntilRef.current = time + INVINCIBLE_DURATION_MS
+                break
+              case 'spikeArmor':
+                spikeArmorUntilRef.current = time + SPIKE_ARMOR_DURATION_MS
+                break
+              case 'aiHelper':
+                aiHelperUntilRef.current = time + AI_HELPER_DURATION_MS
+                break
+              case 'timePlus':
+                timeRemainingRef.current += TIME_PLUS_SECONDS
+                lastDisplayedTimeRef.current = Math.ceil(
+                  timeRemainingRef.current,
+                )
+                setTimeRemaining(lastDisplayedTimeRef.current)
+                break
+              case 'scoreBonus':
+                scoreRef.current = addToTotalScore(
+                  scoreRef.current,
+                  SCORE_BONUS_POINTS,
+                )
+                setScore(scoreRef.current)
+                break
+              case 'stabilizer':
+                stabilizerUntilRef.current = time + STABILIZER_DURATION_MS
+                break
+              case 'novaSurge':
+                novaSurgeUntilRef.current = time + NOVA_SURGE_DURATION_MS
+                break
+              case 'fireproof':
+                fireproofUntilRef.current = time + FIREPROOF_DURATION_MS
+                break
+              case 'anchor':
+                anchorUntilRef.current = time + ANCHOR_DURATION_MS
+                break
+              case 'magnet':
+                magnetUntilRef.current = time + MAGNET_DURATION_MS
+                break
+              case 'comboLock':
+                comboLockUntilRef.current = time + COMBO_LOCK_DURATION_MS
+                break
+              case 'umbrella':
+                umbrellaUntilRef.current = time + UMBRELLA_DURATION_MS
+                break
+              case 'gripBoots':
+                gripBootsUntilRef.current = time + GRIP_BOOTS_DURATION_MS
+                break
+              case 'visor':
+                visorUntilRef.current = time + VISOR_DURATION_MS
+                break
+              case 'lockOn':
+                lockOnUntilRef.current = time + LOCK_ON_DURATION_MS
+                break
+              case 'overdrive':
+                overdriveUntilRef.current = time + OVERDRIVE_DURATION_MS
+                break
+              case 'pierce':
+                pierceUntilRef.current = time + PIERCE_DURATION_MS
+                break
+              case 'shockwave': {
+                let shockwaveGained = 0
+                const shockwaveChildren: Ball[] = []
+                for (const b of ballsRef.current) {
+                  spawnBurst(
+                    particlesRef.current,
+                    b.x,
+                    b.y,
+                    b.golden ? '#facc15' : BALL_COLORS[b.level],
+                  )
+                  const gained = Math.round(
+                    SCORE_BY_LEVEL[b.level] *
+                      (1 + comboRef.current * 0.1) *
+                      (isNovaSurgeActive ? NOVA_SURGE_MULTIPLIER : 1) *
+                      (isOverdriveActive ? OVERDRIVE_SCORE_MULTIPLIER : 1) *
+                      (b.golden ? GOLDEN_BALL_SCORE_MULTIPLIER : 1),
+                  )
+                  shockwaveGained += gained
+                  popupsRef.current.push({
+                    x: b.x,
+                    y: b.y,
+                    text: b.golden ? `GOLDEN +${gained}` : `+${gained}`,
+                    life: 700,
+                    maxLife: 700,
+                    color: b.golden ? '#facc15' : undefined,
+                  })
+                  shockwaveChildren.push(...splitBall(b, nextId))
+                }
+                scoreRef.current = addToTotalScore(
+                  scoreRef.current,
+                  shockwaveGained,
+                )
+                setScore(scoreRef.current)
+                ballsRef.current = shockwaveChildren
+                playHitSound(2)
+                break
+              }
+            }
+          }
+
           const isCompanionActive =
             (settings.aiCompanion || time < aiHelperUntilRef.current) && !demo
 
@@ -3289,10 +3480,13 @@ function GamePlay({
 
             if (isCompanionActive) {
               // The clone fights and dodges with the same brain as demo
-              // mode, but never detours for items (includeItemDetour:
-              // false) and is capped at a single harpoon of the plain,
+              // mode, and now also detours for items exactly like a second
+              // player would — picking one up applies the same global
+              // buff/score effect a real pickup does (see applyItemPickup),
+              // so it's genuinely cooperative rather than just parallel
+              // play. It's still capped at a single harpoon of the plain,
               // non-buffed kind — it doesn't inherit the real player's
-              // picked-up weapon items.
+              // picked-up WEAPON items, only shared buffs/consumables.
               const cloneMaxHarpoons = 1
               const decision = computeAiDecision(
                 companionXRef.current,
@@ -3302,7 +3496,7 @@ function GamePlay({
                 companionTargetIdRef,
                 {
                   balls: ballsRef.current,
-                  items: [],
+                  items: itemsRef.current,
                   activePlatforms,
                   windAx,
                   gravityWell: activeGravityWell,
@@ -3326,7 +3520,7 @@ function GamePlay({
                   jitterStrength: activeJitterStrength,
                   hazardDangerZones,
                   bounds,
-                  includeItemDetour: false,
+                  includeItemDetour: true,
                 },
               )
 
@@ -3409,6 +3603,26 @@ function GamePlay({
                   ]
                 }
                 companionHarpoonsRef.current = remainingCompanionHarpoons
+              }
+
+              const companionPickupIndex = itemsRef.current.findIndex((item) =>
+                itemHitsPlayer(
+                  item,
+                  companionXRef.current,
+                  companionYRef.current,
+                ),
+              )
+              if (companionPickupIndex !== -1) {
+                const picked = itemsRef.current[companionPickupIndex]
+                itemsRef.current = [
+                  ...itemsRef.current.slice(0, companionPickupIndex),
+                  ...itemsRef.current.slice(companionPickupIndex + 1),
+                ]
+                applyItemPickup(
+                  picked,
+                  companionXRef.current,
+                  companionYRef.current,
+                )
               }
             }
           }
@@ -3934,183 +4148,7 @@ function GamePlay({
               ...itemsRef.current.slice(0, pickupIndex),
               ...itemsRef.current.slice(pickupIndex + 1),
             ]
-            playItemSound()
-            setItemNotice(picked.type)
-            if (itemNoticeTimerRef.current !== null) {
-              window.clearTimeout(itemNoticeTimerRef.current)
-            }
-            itemNoticeTimerRef.current = window.setTimeout(() => {
-              setItemNotice(null)
-              itemNoticeTimerRef.current = null
-            }, 2200)
-            popupsRef.current.push({
-              x: picked.x,
-              y: picked.y - 16,
-              text: ITEM_ANNOUNCEMENTS[picked.type],
-              life: 900,
-              maxLife: 900,
-              color: ITEM_COLORS[picked.type],
-            })
-            spawnPickupCelebration(
-              particlesRef.current,
-              pickupEffectsRef.current,
-              playerXRef.current,
-              playerYRef.current - 4,
-              picked.type,
-            )
-
-            switch (picked.type) {
-              case 'doubleWire':
-                doubleWireUntilRef.current = time + DOUBLE_WIRE_DURATION_MS
-                powerWireUntilRef.current = 0
-                vulcanUntilRef.current = 0
-                diagonalWireUntilRef.current = 0
-                break
-              case 'powerWire':
-                powerWireUntilRef.current = time + POWER_WIRE_DURATION_MS
-                doubleWireUntilRef.current = 0
-                vulcanUntilRef.current = 0
-                diagonalWireUntilRef.current = 0
-                harpoonsRef.current = []
-                break
-              case 'vulcan':
-                vulcanUntilRef.current = time + VULCAN_DURATION_MS
-                doubleWireUntilRef.current = 0
-                powerWireUntilRef.current = 0
-                diagonalWireUntilRef.current = 0
-                harpoonsRef.current = []
-                break
-              case 'diagonalWire':
-                diagonalWireUntilRef.current = time + DIAGONAL_WIRE_DURATION_MS
-                doubleWireUntilRef.current = 0
-                powerWireUntilRef.current = 0
-                vulcanUntilRef.current = 0
-                harpoonsRef.current = []
-                break
-              case 'clock':
-                clockUntilRef.current = time + CLOCK_DURATION_MS
-                break
-              case 'hourglass':
-                hourglassUntilRef.current = time + HOURGLASS_DURATION_MS
-                break
-              case 'barrier':
-                barrierCountRef.current += 1
-                break
-              case 'oneUp':
-                hpRef.current = Math.min(MAX_HP, hpRef.current + 1)
-                setHp(hpRef.current)
-                break
-              case 'dynamite':
-                for (const b of ballsRef.current) {
-                  spawnBurst(
-                    particlesRef.current,
-                    b.x,
-                    b.y,
-                    BALL_COLORS[b.level],
-                  )
-                }
-                ballsRef.current = explodeToSmallest(ballsRef.current, nextId)
-                break
-              case 'speedBoost':
-                speedBoostUntilRef.current = time + SPEED_BOOST_DURATION_MS
-                break
-              case 'invincible':
-                invincibleUntilRef.current = time + INVINCIBLE_DURATION_MS
-                break
-              case 'spikeArmor':
-                spikeArmorUntilRef.current = time + SPIKE_ARMOR_DURATION_MS
-                break
-              case 'aiHelper':
-                aiHelperUntilRef.current = time + AI_HELPER_DURATION_MS
-                break
-              case 'timePlus':
-                timeRemainingRef.current += TIME_PLUS_SECONDS
-                lastDisplayedTimeRef.current = Math.ceil(
-                  timeRemainingRef.current,
-                )
-                setTimeRemaining(lastDisplayedTimeRef.current)
-                break
-              case 'scoreBonus':
-                scoreRef.current = addToTotalScore(
-                  scoreRef.current,
-                  SCORE_BONUS_POINTS,
-                )
-                setScore(scoreRef.current)
-                break
-              case 'stabilizer':
-                stabilizerUntilRef.current = time + STABILIZER_DURATION_MS
-                break
-              case 'novaSurge':
-                novaSurgeUntilRef.current = time + NOVA_SURGE_DURATION_MS
-                break
-              case 'fireproof':
-                fireproofUntilRef.current = time + FIREPROOF_DURATION_MS
-                break
-              case 'anchor':
-                anchorUntilRef.current = time + ANCHOR_DURATION_MS
-                break
-              case 'magnet':
-                magnetUntilRef.current = time + MAGNET_DURATION_MS
-                break
-              case 'comboLock':
-                comboLockUntilRef.current = time + COMBO_LOCK_DURATION_MS
-                break
-              case 'umbrella':
-                umbrellaUntilRef.current = time + UMBRELLA_DURATION_MS
-                break
-              case 'gripBoots':
-                gripBootsUntilRef.current = time + GRIP_BOOTS_DURATION_MS
-                break
-              case 'visor':
-                visorUntilRef.current = time + VISOR_DURATION_MS
-                break
-              case 'lockOn':
-                lockOnUntilRef.current = time + LOCK_ON_DURATION_MS
-                break
-              case 'overdrive':
-                overdriveUntilRef.current = time + OVERDRIVE_DURATION_MS
-                break
-              case 'pierce':
-                pierceUntilRef.current = time + PIERCE_DURATION_MS
-                break
-              case 'shockwave': {
-                let shockwaveGained = 0
-                const shockwaveChildren: Ball[] = []
-                for (const b of ballsRef.current) {
-                  spawnBurst(
-                    particlesRef.current,
-                    b.x,
-                    b.y,
-                    b.golden ? '#facc15' : BALL_COLORS[b.level],
-                  )
-                  const gained = Math.round(
-                    SCORE_BY_LEVEL[b.level] *
-                      (1 + comboRef.current * 0.1) *
-                      (isNovaSurgeActive ? NOVA_SURGE_MULTIPLIER : 1) *
-                      (isOverdriveActive ? OVERDRIVE_SCORE_MULTIPLIER : 1) *
-                      (b.golden ? GOLDEN_BALL_SCORE_MULTIPLIER : 1),
-                  )
-                  shockwaveGained += gained
-                  popupsRef.current.push({
-                    x: b.x,
-                    y: b.y,
-                    text: b.golden ? `GOLDEN +${gained}` : `+${gained}`,
-                    life: 700,
-                    maxLife: 700,
-                    color: b.golden ? '#facc15' : undefined,
-                  })
-                  shockwaveChildren.push(...splitBall(b, nextId))
-                }
-                scoreRef.current = addToTotalScore(
-                  scoreRef.current,
-                  shockwaveGained,
-                )
-                setScore(scoreRef.current)
-                ballsRef.current = shockwaveChildren
-                playHitSound(2)
-                break
-              }
-            }
+            applyItemPickup(picked, playerXRef.current, playerYRef.current)
           }
 
           const doubleWireSec = Math.max(
