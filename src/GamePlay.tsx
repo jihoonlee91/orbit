@@ -2020,6 +2020,14 @@ const AI_REFLEX_SEC = 0.35
 // every prediction is only good until the next jump — widen the per-ball
 // no-go band to absorb the jump distance a prediction can't see coming.
 const AI_RIFT_EXTRA_DODGE_BUFFER = 16
+// Frozen Summit's slick floor decelerates at 500px/s² instead of stopping
+// dead, so a body at full speed coasts ~90px past where it stopped
+// steering. Widen the no-go band there so a dodge that clears on paper
+// also clears in practice.
+const AI_ICY_EXTRA_DODGE_BUFFER = 26
+// Minimum lookahead used when compensating for Ice Wind drift, so holding
+// a spot still leans into the gust rather than sliding out of position.
+const AI_WIND_HOLD_SEC = 0.25
 // A challenger ball must beat the current target's time-to-kill by this
 // much before the AI switches targets — kills frame-to-frame retarget
 // thrash between two similarly-placed balls.
@@ -2148,6 +2156,23 @@ type AiWorld = {
   isClockActive: boolean
   isInvincibleActive: boolean
   isOverdriveActive: boolean
+  // Post-hit i-frames / stage-start grace. The real damage check gates on
+  // this too, so while it holds the body genuinely cannot be hurt and the
+  // planner should push for shots instead of routing around ghosts.
+  isInvulnerable: boolean
+  // Spike Armor turns body contact with a BALL into a free pop-for-score,
+  // so balls stop being threats while it's up — fire zones, acid rain and
+  // the roaming critter still hurt, hence a separate flag from the
+  // blanket-immunity ones above.
+  isSpikeArmorActive: boolean
+  // Ice Wind's lateral push (px/sec), already zeroed by Grip Boots /
+  // Overdrive at the call site. Applied to the body every step regardless
+  // of input, so aiming straight at a spot lands downwind of it.
+  windPushX: number
+  // Frozen Summit's slick floor: acceleration and (worse) deceleration are
+  // gradual instead of snap-to-stop, so a dodge that's exactly tight
+  // overshoots. Widens the planner's safety margin.
+  icyFloor: boolean
   barrierCount: number
   timeRemaining: number
   jitterStrength: number | null
@@ -2304,28 +2329,43 @@ function computeAiDecision(
   const canEngageTarget = harpoonCount < maxHarpoons
   const ballDodgeBuffer =
     AI_DODGE_BUFFER +
-    (env.jitterStrength !== null ? AI_RIFT_EXTRA_DODGE_BUFFER : 0)
+    (env.jitterStrength !== null ? AI_RIFT_EXTRA_DODGE_BUFFER : 0) +
+    // On ice the body coasts well past the point it stops steering, so a
+    // dodge planned to exactly clear a ball doesn't.
+    (env.icyFloor ? AI_ICY_EXTRA_DODGE_BUFFER : 0)
   const dangerZones: DangerZone[] = [
-    ...predictions.flatMap((p) => {
-      const engaged =
-        canEngageTarget && target !== null && p.ball.id === target.id
-      const threats = engaged
-        ? p.threats.filter((threat) => threat.time <= AI_REFLEX_SEC)
-        : p.threats
-      return threats.map((threat) => ({
-        x: threat.x,
-        time: threat.time,
-        radius: LEVEL_RADIUS[p.ball.level] + PLAYER_WIDTH / 2 + ballDodgeBuffer,
-      }))
-    }),
+    // Spike Armor makes ball contact a free pop, so balls stop being
+    // obstacles to route around entirely — only the hazards that still
+    // deal damage stay in the plan.
+    ...(env.isSpikeArmorActive
+      ? []
+      : predictions.flatMap((p) => {
+          const engaged =
+            canEngageTarget && target !== null && p.ball.id === target.id
+          const threats = engaged
+            ? p.threats.filter((threat) => threat.time <= AI_REFLEX_SEC)
+            : p.threats
+          return threats.map((threat) => ({
+            x: threat.x,
+            time: threat.time,
+            radius:
+              LEVEL_RADIUS[p.ball.level] + PLAYER_WIDTH / 2 + ballDodgeBuffer,
+          }))
+        })),
     ...env.hazardDangerZones,
   ]
 
-  // While invincible, nothing is actually a threat — go straight for the
-  // goal instead of routing around ghosts.
-  const moveTargetX =
+  // While nothing can actually deal damage — Clock/Invincible/Overdrive, or
+  // simply mid-i-frames — go straight for the goal instead of routing
+  // around ghosts.
+  const isDamageImmune =
+    env.isClockActive ||
+    env.isInvincibleActive ||
+    env.isOverdriveActive ||
+    env.isInvulnerable
+  const plannedX =
     itemTarget !== null || target !== null
-      ? env.isClockActive || env.isInvincibleActive || env.isOverdriveActive
+      ? isDamageImmune
         ? desiredX
         : chooseSafeX(desiredX, selfX, dangerZones, env.bounds, {
             playerSpeed: env.playerSpeed,
@@ -2337,6 +2377,26 @@ function computeAiDecision(
             maxTravelPx: env.playerSpeed * 1.4,
           })
       : selfX
+
+  // Ice Wind shoves the body sideways every step no matter what it presses,
+  // so steering straight at a spot always lands downwind of it. Aim upwind
+  // by the drift expected over the trip (floored at a short hold window, so
+  // even "stay put" actively leans into the gust instead of sliding).
+  const moveTargetX =
+    env.windPushX === 0
+      ? plannedX
+      : Math.min(
+          env.bounds.max,
+          Math.max(
+            env.bounds.min,
+            plannedX -
+              env.windPushX *
+                Math.max(
+                  AI_WIND_HOLD_SEC,
+                  Math.abs(plannedX - selfX) / env.playerSpeed,
+                ),
+          ),
+        )
 
   const left = moveTargetX < selfX - AI_DEADZONE
   const right = moveTargetX > selfX + AI_DEADZONE
@@ -3154,9 +3214,21 @@ function GamePlay({
                 time: getAcidRainSecondsUntilActive(zone, time),
                 radius: zone.width / 2 + PLAYER_WIDTH / 2 + AI_DODGE_BUFFER,
               }))
+            // The roaming critter deals contact damage but isn't a zone
+            // that switches on and off — it's always live wherever it
+            // currently is, so it enters the plan at time 0. Killed ones
+            // are gone for the rest of the stage and drop out here.
+            const critterDangers: DangerZone[] = (stageCritters ?? [])
+              .filter((_, i) => !crittersKilledRef.current.has(i))
+              .map((critter) => ({
+                x: getCritterX(critter, time),
+                time: 0,
+                radius: CRITTER_RADIUS + PLAYER_WIDTH / 2 + AI_DODGE_BUFFER,
+              }))
             const hazardDangerZones: DangerZone[] = [
               ...fireZoneDangers,
               ...acidRainDangers,
+              ...critterDangers,
             ]
             const bounds = {
               min: PLAYER_WIDTH / 2,
@@ -3187,6 +3259,10 @@ function GamePlay({
                   isClockActive,
                   isInvincibleActive,
                   isOverdriveActive,
+                  isInvulnerable: time < invulnUntilRef.current,
+                  isSpikeArmorActive,
+                  windPushX: activeIceWindPush,
+                  icyFloor: terrain.icy === true,
                   barrierCount: barrierCountRef.current,
                   timeRemaining: timeRemainingRef.current,
                   jitterStrength: activeJitterStrength,
@@ -3238,6 +3314,13 @@ function GamePlay({
                   isClockActive,
                   isInvincibleActive,
                   isOverdriveActive,
+                  // The clone takes no damage at all (it has no HP and is
+                  // skipped by every hit check), so routing around threats
+                  // would only cost it shots it could otherwise take.
+                  isInvulnerable: true,
+                  isSpikeArmorActive: false,
+                  windPushX: activeIceWindPush,
+                  icyFloor: terrain.icy === true,
                   barrierCount: 0,
                   timeRemaining: timeRemainingRef.current,
                   jitterStrength: activeJitterStrength,

@@ -9,6 +9,14 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.33.0',
+    date: '2026-07-25',
+    notes: [
+      "Fixed the roaming critter being killable in name only — a harpoon's reach was narrower than the critter's own contact range, so you had to already be taking damage to land a shot. You can now shoot one down as it approaches, from safety.",
+      'The AI (both Watch AI Play and the Companion) now accounts for the roaming critter, its own invulnerability frames, Spike Armor, Ice Wind drift, and the slick Frozen Summit floor — it no longer walks into critters, dodges when it cannot be hurt, or gets blown off its dodge line.',
+    ],
+  },
+  {
     version: '1.32.0',
     date: '2026-07-25',
     notes: [

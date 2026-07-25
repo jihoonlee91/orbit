@@ -87,13 +87,22 @@ export function getCritterX(critter: Critter, elapsedMs: number): number {
   return critter.minX + t * (critter.maxX - critter.minX)
 }
 
+// How far to either side of the harpoon's launch column a ground-level
+// critter is skewered. This MUST stay comfortably wider than the critter's
+// own contact range (PLAYER_WIDTH / 2 + CRITTER_RADIUS = 36px) — the
+// harpoon and the critter both sit on the floor, so a kill reach narrower
+// than contact reach means the player has to already be taking damage
+// before a shot can connect, which made "killable" true on paper and
+// impossible in practice. At 60px the player gets a real window to shoot
+// an approaching critter down from safety, which is the whole point of
+// giving it a hitbox.
+export const CRITTER_HARPOON_REACH = 60
+
 // Segment check, same model as harpoonHitsBall in engine.ts — the harpoon
 // is a vertical line from its base (normally the player, PLAYER_Y) up to
-// its current tip, so a rising shot can sweep through the critter's
+// its current tip, so a rising shot sweeps through the critter's
 // ground-level hitbox instead of only counting a hit at the exact instant
-// the tip passes through. Lets the critter be killed rather than only ever
-// dodged, which is the whole point: an unkillable hazard that just keeps
-// crawling forever is a pure reflex tax, not a puzzle.
+// the tip passes through.
 export function harpoonHitsCritter(
   harpoonX: number,
   harpoonTipY: number,
@@ -102,10 +111,10 @@ export function harpoonHitsCritter(
 ): boolean {
   const segmentTop = Math.min(harpoonTipY, harpoonBaseY)
   const segmentBottom = Math.max(harpoonTipY, harpoonBaseY)
-  const closestY = Math.min(Math.max(PLAYER_Y, segmentTop), segmentBottom)
-  const dx = critterX - harpoonX
-  const dy = PLAYER_Y - closestY
-  return dx * dx + dy * dy <= CRITTER_RADIUS * CRITTER_RADIUS
+  // The harpoon only threatens the critter while its shaft still spans the
+  // floor the critter walks on; once the whole shot is overhead it's past.
+  if (segmentTop > PLAYER_Y || segmentBottom < PLAYER_Y) return false
+  return Math.abs(critterX - harpoonX) <= CRITTER_HARPOON_REACH
 }
 
 export function critterHitsPlayer(

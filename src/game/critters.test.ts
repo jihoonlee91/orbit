@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CRITTER_RADIUS,
   CRITTER_START_STAGE,
   critterHitsPlayer,
   getCritterX,
   getStageCritters,
   harpoonHitsCritter,
 } from './critters'
-import { PLAYER_Y } from './constants'
+import { PLAYER_WIDTH, PLAYER_Y } from './constants'
 
 describe('getStageCritters', () => {
   it('has no critters before the start stage', () => {
@@ -82,5 +83,30 @@ describe('harpoonHitsCritter', () => {
 
   it('misses when the harpoon is far to the side', () => {
     expect(harpoonHitsCritter(100, PLAYER_Y - 200, 700, PLAYER_Y)).toBe(false)
+  })
+
+  it('can kill an approaching critter from outside its contact range', () => {
+    // The critical invariant: if the harpoon's reach were narrower than the
+    // critter's own contact range, the player would have to already be
+    // taking damage before a shot could ever connect — "killable" in name
+    // only. Pick a gap where contact has NOT triggered yet and assert a
+    // shot still lands there.
+    const playerX = 400
+    const contactRange = PLAYER_WIDTH / 2 + CRITTER_RADIUS
+    const safeGap = contactRange + 12
+    const critterX = playerX + safeGap
+
+    expect(critterHitsPlayer(critterX, playerX, PLAYER_Y)).toBe(false)
+    expect(
+      harpoonHitsCritter(playerX, PLAYER_Y - 150, critterX, PLAYER_Y),
+    ).toBe(true)
+  })
+
+  it('stops threatening the critter once the shot is entirely overhead', () => {
+    // Shaft spans 300 -> 200 above the floor: nothing of it is at ground
+    // level any more, so a critter standing right there is not hit.
+    expect(harpoonHitsCritter(400, PLAYER_Y - 300, 400, PLAYER_Y - 200)).toBe(
+      false,
+    )
   })
 })
