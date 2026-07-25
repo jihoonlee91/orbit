@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { GameSettings } from '../game/settings'
 import { clearAppCache } from '../game/updateCheck'
+import { getStrings, LOCALE_LABELS, type Locale } from '../game/i18n'
 
 type Props = {
   settings: GameSettings
@@ -24,6 +25,7 @@ export default function SettingsDialog({
     value: GameSettings[K],
   ) => onChange({ ...settings, [key]: value })
 
+  const t = getStrings(settings.language)
   const [clearingCache, setClearingCache] = useState(false)
 
   const handleClearCache = async () => {
@@ -38,12 +40,12 @@ export default function SettingsDialog({
       role="dialog"
       aria-labelledby="settings-title"
     >
-      <h1 id="settings-title">Settings</h1>
+      <h1 id="settings-title">{t.settings.title}</h1>
       {(
         [
-          ['masterVolume', 'Master volume'],
-          ['musicVolume', 'Music volume'],
-          ['effectsVolume', 'Effects volume'],
+          ['masterVolume', t.settings.masterVolume],
+          ['musicVolume', t.settings.musicVolume],
+          ['effectsVolume', t.settings.effectsVolume],
         ] as const
       ).map(([key, label]) => (
         <label className="setting-row" key={key}>
@@ -59,7 +61,7 @@ export default function SettingsDialog({
         </label>
       ))}
       <label className="setting-row">
-        Touch button size
+        {t.settings.touchButtonSize}
         <input
           type="range"
           min="72"
@@ -72,7 +74,7 @@ export default function SettingsDialog({
         />
       </label>
       <label className="setting-row">
-        Touch opacity
+        {t.settings.touchOpacity}
         <input
           type="range"
           min="0.4"
@@ -84,13 +86,26 @@ export default function SettingsDialog({
           }
         />
       </label>
+      <label className="setting-row">
+        {t.settings.language}
+        <select
+          value={settings.language}
+          onChange={(event) => update('language', event.target.value as Locale)}
+        >
+          {(Object.keys(LOCALE_LABELS) as Locale[]).map((locale) => (
+            <option key={locale} value={locale}>
+              {LOCALE_LABELS[locale]}
+            </option>
+          ))}
+        </select>
+      </label>
       {(
         [
-          ['screenShake', 'Screen shake'],
-          ['reducedMotion', 'Reduced motion'],
-          ['vibration', 'Vibration'],
-          ['showFps', 'Show FPS'],
-          ['aiCompanion', 'AI Companion (assist mode)'],
+          ['screenShake', t.settings.screenShake],
+          ['reducedMotion', t.settings.reducedMotion],
+          ['vibration', t.settings.vibration],
+          ['showFps', t.settings.showFps],
+          ['aiCompanion', t.settings.aiCompanion],
         ] as const
       ).map(([key, label]) => (
         <label className="setting-check" key={key}>
@@ -104,14 +119,14 @@ export default function SettingsDialog({
       ))}
       <div className="settings-actions">
         <button type="button" className="screen-button" onClick={onClose}>
-          Done
+          {t.settings.done}
         </button>
         <button
           type="button"
           className="screen-button screen-button-secondary"
           onClick={onReplayTutorial}
         >
-          Replay Tutorial
+          {t.settings.replayTutorial}
         </button>
       </div>
       <button
@@ -119,7 +134,7 @@ export default function SettingsDialog({
         className="screen-button screen-button-secondary"
         onClick={onShowWhatsNew}
       >
-        What's New
+        {t.settings.whatsNew}
       </button>
       <button
         type="button"
@@ -127,17 +142,11 @@ export default function SettingsDialog({
         disabled={clearingCache}
         onClick={() => void handleClearCache()}
       >
-        {clearingCache ? 'Clearing Cache…' : 'Clear Cache'}
+        {clearingCache ? t.settings.clearingCache : t.settings.clearCache}
       </button>
-      <p className="setting-hint">
-        This device caches the game for offline play. Clear it if you're stuck
-        on an old version.
-      </p>
+      <p className="setting-hint">{t.settings.cacheHint}</p>
       {manualInstallHint && <p className="setting-hint">{manualInstallHint}</p>}
-      <p className="disclaimer">
-        This is an independent game and is not affiliated with or endorsed by
-        the owners of Pang or Buster Bros.
-      </p>
+      <p className="disclaimer">{t.settings.disclaimer}</p>
     </div>
   )
 }

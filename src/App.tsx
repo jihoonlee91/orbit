@@ -19,6 +19,7 @@ import type { ScoreEntry } from './game/scoreHistory'
 import SettingsDialog from './components/SettingsDialog'
 import WhatsNewDialog from './components/WhatsNewDialog'
 import { loadSettings, saveSettings, type GameSettings } from './game/settings'
+import { getStrings } from './game/i18n'
 import {
   configureAudio,
   playVictoryFanfare,
@@ -110,6 +111,7 @@ function App() {
   const [playedAt, setPlayedAt] = useState('')
   const [playerName, setPlayerNameState] = useState(getPlayerName)
   const [settings, setSettings] = useState<GameSettings>(loadSettings)
+  const t = getStrings(settings.language)
   const [tutorialStep, setTutorialStep] = useState(0)
   const [stageAdvanceCountdown, setStageAdvanceCountdown] = useState(
     STAGE_ADVANCE_COUNTDOWN,
@@ -531,18 +533,21 @@ function App() {
       <div className="screen main-screen">
         <p className="app-version">v{__APP_VERSION__}</p>
         {updateAvailable && (
-          <p className="update-toast">Updating to the latest version…</p>
+          <p className="update-toast">{t.mainMenu.updating}</p>
         )}
         <div className="main-orbit" aria-hidden="true">
           <span />
           <span />
           <span />
         </div>
-        <p className="main-kicker">Classic World Tour • 1 Player</p>
+        <p className="main-kicker">{t.mainMenu.kicker}</p>
         <h1>ORBIT</h1>
-        <p className="main-tagline">Pop • Split • Clear the Stage</p>
+        <p className="main-tagline">{t.mainMenu.tagline}</p>
         <p className="main-unlock-progress">
-          Unlocked: Stage {highestUnlockedStage + 1} / {visibleStageCount}
+          {t.mainMenu.unlockProgress(
+            highestUnlockedStage + 1,
+            visibleStageCount,
+          )}
         </p>
         <p className="controls-summary main-controls">{CONTROLS_SUMMARY}</p>
         <div className="main-actions">
@@ -551,7 +556,7 @@ function App() {
             className="screen-button main-start-button"
             onClick={startGame}
           >
-            Start Game
+            {t.mainMenu.startGame}
           </button>
           {highestUnlockedStage > 0 && (
             <button
@@ -559,7 +564,7 @@ function App() {
               className="screen-button screen-button-secondary"
               onClick={continueGame}
             >
-              Continue (Stage {highestUnlockedStage + 1})
+              {t.mainMenu.continueGame(highestUnlockedStage + 1)}
             </button>
           )}
           <button
@@ -567,35 +572,35 @@ function App() {
             className="screen-button screen-button-secondary"
             onClick={() => setScreen('demoMap')}
           >
-            Watch AI Play
+            {t.mainMenu.watchAiPlay}
           </button>
           <button
             type="button"
             className="screen-button screen-button-secondary"
             onClick={() => setScreen('intro')}
           >
-            Replay Intro
+            {t.mainMenu.replayIntro}
           </button>
           <button
             type="button"
             className="screen-button screen-button-secondary"
             onClick={() => setScreen('map')}
           >
-            Stage Map
+            {t.mainMenu.stageMap}
           </button>
           <button
             type="button"
             className="screen-button screen-button-secondary"
             onClick={() => setScreen('glossary')}
           >
-            Glossary
+            {t.mainMenu.glossary}
           </button>
           <button
             type="button"
             className="screen-button screen-button-secondary"
             onClick={() => setScreen('settings')}
           >
-            Settings
+            {t.mainMenu.settings}
           </button>
           {'requestFullscreen' in document.documentElement && (
             <button
@@ -603,7 +608,7 @@ function App() {
               className="screen-button screen-button-secondary"
               onClick={toggleFullscreen}
             >
-              {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              {isFullscreen ? t.mainMenu.exitFullscreen : t.mainMenu.fullscreen}
             </button>
           )}
           {installPromptEvent && !isStandalone && (
@@ -612,11 +617,11 @@ function App() {
               className="screen-button screen-button-secondary"
               onClick={() => void promptInstall()}
             >
-              Install App
+              {t.mainMenu.installApp}
             </button>
           )}
         </div>
-        <p className="space-hint">▼ Press Space to Start ▼</p>
+        <p className="space-hint">{t.mainMenu.spaceHint}</p>
       </div>
     )
   }
@@ -643,7 +648,9 @@ function App() {
   }
 
   if (screen === 'glossary') {
-    return <Glossary onBack={() => setScreen('main')} />
+    return (
+      <Glossary onBack={() => setScreen('main')} language={settings.language} />
+    )
   }
 
   if (screen === 'settings') {

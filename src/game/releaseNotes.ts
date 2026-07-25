@@ -9,6 +9,13 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.35.0',
+    date: '2026-07-25',
+    notes: [
+      "New Settings option: Language (English/한국어). The main menu, in-game HUD and pause menu, Settings itself, and every item name/description now switch with it. Stage Map, Glossary, What's New, and the intro tutorial are still English-only for now — more screens will follow.",
+    ],
+  },
+  {
     version: '1.34.0',
     date: '2026-07-25',
     notes: [

@@ -2,13 +2,14 @@ import { useEffect, useRef } from 'react'
 import type { ItemType } from './game/types'
 import {
   ITEM_COLORS,
-  ITEM_TITLES,
-  ITEM_DESCRIPTIONS,
+  getItemTitles,
+  getItemDescriptions,
   drawFallingItemIcon,
 } from './game/itemDisplay'
 import { HAZARD_CATALOG } from './game/hazardCatalog'
+import type { Locale } from './game/i18n'
 
-const ITEM_TYPES = Object.keys(ITEM_TITLES) as ItemType[]
+const ITEM_TYPES = Object.keys(getItemTitles('en')) as ItemType[]
 const ICON_SIZE = 56
 
 function ItemIcon({ type }: { type: ItemType }) {
@@ -46,9 +47,12 @@ function ItemIcon({ type }: { type: ItemType }) {
 
 type Props = {
   onBack: () => void
+  language: Locale
 }
 
-function Glossary({ onBack }: Props) {
+function Glossary({ onBack, language }: Props) {
+  const itemTitles = getItemTitles(language)
+  const itemDescriptions = getItemDescriptions(language)
   return (
     <div className="screen glossary-screen">
       <h1>Glossary</h1>
@@ -62,8 +66,8 @@ function Glossary({ onBack }: Props) {
           <div key={type} className="glossary-card">
             <ItemIcon type={type} />
             <div className="glossary-card-text">
-              <p className="glossary-card-title">{ITEM_TITLES[type]}</p>
-              <p className="glossary-card-desc">{ITEM_DESCRIPTIONS[type]}</p>
+              <p className="glossary-card-title">{itemTitles[type]}</p>
+              <p className="glossary-card-desc">{itemDescriptions[type]}</p>
             </div>
           </div>
         ))}

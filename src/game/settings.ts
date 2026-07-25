@@ -1,3 +1,5 @@
+import type { Locale } from './i18n'
+
 export type GameSettings = {
   masterVolume: number
   musicVolume: number
@@ -9,6 +11,7 @@ export type GameSettings = {
   vibration: boolean
   showFps: boolean
   aiCompanion: boolean
+  language: Locale
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
@@ -22,6 +25,9 @@ export const DEFAULT_SETTINGS: GameSettings = {
   vibration: true,
   showFps: false,
   aiCompanion: false,
+  // English is the fallback while Korean coverage is still being filled
+  // in screen by screen — see i18n.ts for which screens are translated.
+  language: 'en',
 }
 
 const KEY = 'pang.settings.v1'

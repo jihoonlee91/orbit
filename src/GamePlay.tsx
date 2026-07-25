@@ -174,6 +174,7 @@ import {
 } from './game/backgrounds'
 import { InputController, type InputAction } from './game/input/InputController'
 import type { GameSettings } from './game/settings'
+import { getStrings } from './game/i18n'
 import { addToTotalScore } from './game/scoring'
 import TouchControls from './components/TouchControls'
 import {
@@ -183,8 +184,8 @@ import {
 } from './game/loop/GameLoop'
 import {
   ITEM_COLORS,
-  ITEM_TITLES,
-  ITEM_DESCRIPTIONS,
+  getItemTitles,
+  getItemDescriptions,
   drawFallingItemIcon,
 } from './game/itemDisplay'
 import { getHazardIntroForStage, type HazardEntry } from './game/hazardCatalog'
@@ -2448,6 +2449,9 @@ function GamePlay({
   cleared = true,
 }: Props) {
   const isStarting = startCountdown !== undefined
+  const t = getStrings(settings.language)
+  const itemTitles = getItemTitles(settings.language)
+  const itemDescriptions = getItemDescriptions(settings.language)
   const terrain = getStageTerrain(stageIndex)
   const portalPairs = useMemo(() => getStagePortals(stageIndex), [stageIndex])
   const stageCurrent = useMemo(() => getStageCurrent(stageIndex), [stageIndex])
@@ -4708,10 +4712,10 @@ function GamePlay({
           className={`hud-time ${timeRemaining <= 10 ? 'hud-time-danger' : ''}`}
           aria-label={`${timeRemaining} seconds remaining`}
         >
-          Time {timeRemaining}
+          {t.hud.time(timeRemaining)}
         </span>
-        <span className="hud-score">Total Score {score}</span>
-        <span className="hud-combo">Combo ×{comboRef.current}</span>
+        <span className="hud-score">{t.hud.totalScore(score)}</span>
+        <span className="hud-combo">{t.hud.combo(comboRef.current)}</span>
         {settings.showFps && <span className="hud-fps">{fps} FPS</span>}
         {demo && <span className="demo-badge">AI</span>}
         {!demo && !isStarting && (
@@ -4724,7 +4728,7 @@ function GamePlay({
               setPaused(true)
             }}
           >
-            Pause
+            {t.hud.pause}
           </button>
         )}
       </div>
@@ -4759,7 +4763,7 @@ function GamePlay({
                 <span className="buff-timer-icon" aria-hidden="true">
                   {ITEM_LABELS.barrier}
                 </span>
-                <span className="buff-timer-name">Barrier</span>
+                <span className="buff-timer-name">{t.hud.barrier}</span>
                 <strong>×{buffs.barrier}</strong>
               </span>
             )}
@@ -4782,8 +4786,8 @@ function GamePlay({
               {ITEM_LABELS[itemNotice]}
             </span>
             <span className="item-notice-copy">
-              <strong>{ITEM_TITLES[itemNotice]} 획득!</strong>
-              <span>{ITEM_DESCRIPTIONS[itemNotice]}</span>
+              <strong>{t.hud.itemObtained(itemTitles[itemNotice])}</strong>
+              <span>{itemDescriptions[itemNotice]}</span>
             </span>
           </div>,
           document.body,
@@ -4841,12 +4845,12 @@ function GamePlay({
               aria-label={`Stage ${stageIndex + 1}, ${STAGE_NAMES[stageIndex % STAGE_NAMES.length]} starts in ${startCountdown}`}
             >
               <div className="stage-start-countdown-panel">
-                <span>Stage {stageIndex + 1}</span>
+                <span>{t.hud.stage(stageIndex + 1)}</span>
                 <span className="stage-start-countdown-name">
                   {STAGE_NAMES[stageIndex % STAGE_NAMES.length]}
                 </span>
                 <strong>{startCountdown}</strong>
-                <small>GET READY</small>
+                <small>{t.hud.getReady}</small>
               </div>
             </div>
           )}
@@ -4894,7 +4898,11 @@ function GamePlay({
                   {BUFF_LABELS[key]} {buffs[key]}s
                 </li>
               ))}
-              {buffs.barrier > 0 && <li>Barrier x{buffs.barrier}</li>}
+              {buffs.barrier > 0 && (
+                <li>
+                  {t.hud.barrier} x{buffs.barrier}
+                </li>
+              )}
               {buffs.doubleWire === 0 &&
                 buffs.powerWire === 0 &&
                 buffs.vulcan === 0 &&
@@ -4914,7 +4922,7 @@ function GamePlay({
                 buffs.lockOn === 0 &&
                 buffs.overdrive === 0 &&
                 buffs.pierce === 0 &&
-                buffs.barrier === 0 && <li>None</li>}
+                buffs.barrier === 0 && <li>{t.hud.none}</li>}
             </ul>
           </div>
           <div>
@@ -4935,7 +4943,7 @@ function GamePlay({
           aria-labelledby="hazard-intro-title"
         >
           <div className="pause-panel">
-            <h2 id="hazard-intro-title">New Hazard: {hazardIntro.name}</h2>
+            <h2 id="hazard-intro-title">{t.hud.newHazard(hazardIntro.name)}</h2>
             <p className="hazard-intro-desc">{hazardIntro.description}</p>
             <button
               type="button"
@@ -4947,7 +4955,7 @@ function GamePlay({
                 setPaused(false)
               }}
             >
-              Got It
+              {t.hud.gotIt}
             </button>
           </div>
         </div>
@@ -4960,14 +4968,14 @@ function GamePlay({
           aria-labelledby="pause-title"
         >
           <div className="pause-panel">
-            <h2 id="pause-title">Paused</h2>
+            <h2 id="pause-title">{t.hud.paused}</h2>
             <button
               type="button"
               className="screen-button"
               autoFocus
               onClick={() => setPaused(false)}
             >
-              Resume
+              {t.hud.resume}
             </button>
             <button
               type="button"
@@ -4977,14 +4985,14 @@ function GamePlay({
                 setPaused(false)
               }}
             >
-              Restart Stage
+              {t.hud.restartStage}
             </button>
             <button
               type="button"
               className="screen-button screen-button-secondary"
               onClick={onQuit}
             >
-              Quit to Main
+              {t.hud.quitToMain}
             </button>
           </div>
         </div>

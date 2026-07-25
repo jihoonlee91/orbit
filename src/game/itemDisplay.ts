@@ -1,4 +1,5 @@
 import type { ItemType } from './types'
+import type { Locale } from './i18n'
 
 export const ITEM_COLORS: Record<ItemType, string> = {
   doubleWire: '#38bdf8',
@@ -31,7 +32,7 @@ export const ITEM_COLORS: Record<ItemType, string> = {
   aiHelper: '#38bdf8',
 }
 
-export const ITEM_TITLES: Record<ItemType, string> = {
+const ITEM_TITLES_EN: Record<ItemType, string> = {
   doubleWire: 'Double Wire',
   powerWire: 'Power Harpoon',
   vulcan: 'Vulcan',
@@ -62,7 +63,74 @@ export const ITEM_TITLES: Record<ItemType, string> = {
   aiHelper: 'AI Helper',
 }
 
-export const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
+const ITEM_TITLES_KO: Record<ItemType, string> = {
+  doubleWire: '더블 와이어',
+  powerWire: '강화 작살',
+  vulcan: '벌컨',
+  clock: '시간 정지',
+  hourglass: '슬로우 모션',
+  barrier: '배리어',
+  oneUp: '1UP',
+  dynamite: '다이너마이트',
+  speedBoost: '스피드 부스트',
+  invincible: '무적',
+  timePlus: '시간 추가',
+  scoreBonus: '점수 보너스',
+  stabilizer: '안정기',
+  novaSurge: '노바 서지',
+  fireproof: '내화',
+  anchor: '앵커',
+  magnet: '자석',
+  comboLock: '콤보 락',
+  shockwave: '충격파',
+  umbrella: '우산',
+  gripBoots: '그립 부츠',
+  visor: '바이저',
+  lockOn: '락온',
+  overdrive: '오버드라이브',
+  pierce: '관통',
+  diagonalWire: '대각선 와이어',
+  spikeArmor: '스파이크 아머',
+  aiHelper: 'AI 도우미',
+}
+
+const ITEM_DESCRIPTIONS_EN: Record<ItemType, string> = {
+  doubleWire: 'Fire up to 2 harpoons at once for 12 seconds.',
+  powerWire:
+    'For 6 seconds, fire a reinforced harpoon that reaches an obstacle or the ceiling and stays for 5 seconds.',
+  vulcan: 'Fire rapid shots continuously for 12 seconds.',
+  clock: 'Freezes every ball in place for 6 seconds.',
+  hourglass: 'Slows every ball down for 8 seconds.',
+  barrier: 'Blocks one hit of damage from a ball.',
+  oneUp: 'Restores 1 HP.',
+  dynamite: 'Instantly shrinks every ball down to its smallest size.',
+  speedBoost: 'Increases movement speed by 60% for 10 seconds.',
+  invincible: 'Take no damage from balls for 8 seconds.',
+  timePlus: 'Instantly adds 15 seconds to the remaining time.',
+  scoreBonus: 'Instantly adds 1,000 points to your total score.',
+  stabilizer:
+    'Neutralizes current/gravity well/nebula/vortex effects for 8 seconds.',
+  novaSurge: 'Doubles the score earned from popping balls for 10 seconds.',
+  fireproof: 'Take no damage from fire zones for 8 seconds.',
+  magnet: 'Pulls falling items toward you for 8 seconds.',
+  comboLock: "Your combo won't drop from time running out for 10 seconds.",
+  shockwave:
+    'Instantly shrinks every ball on screen down one level and scores.',
+  anchor: 'Restores gravity to normal for 8 seconds.',
+  umbrella: 'Take no damage from acid rain for 8 seconds.',
+  gripBoots: "You won't be pushed by ice gusts for 8 seconds.",
+  visor: "Movement speed won't be slowed by solar flare glare for 8 seconds.",
+  lockOn: "Balls won't quantum-jump (teleport) for 8 seconds.",
+  overdrive: 'Blocks all hazard damage and earns 1.5x score for 8 seconds.',
+  pierce: 'Harpoons punch through obstacles for 8 seconds.',
+  diagonalWire: 'Harpoons fire as a pair at 45-degree angles for 10 seconds.',
+  spikeArmor:
+    'Touching a ball with your body pops it instead of dealing damage, for 8 seconds.',
+  aiHelper:
+    'An AI helper drone appears and pops balls for you, for 12 seconds.',
+}
+
+const ITEM_DESCRIPTIONS_KO: Record<ItemType, string> = {
   doubleWire: '12초 동안 작살을 2개까지 동시에 발사합니다.',
   powerWire:
     '6초 동안 장애물이나 천장까지 닿아 5초간 남는 강화 작살을 발사합니다.',
@@ -92,6 +160,14 @@ export const ITEM_DESCRIPTIONS: Record<ItemType, string> = {
   diagonalWire: '10초 동안 작살이 좌우 45도 대각선으로 2발 발사됩니다.',
   spikeArmor: '8초 동안 공에 몸으로 닿으면 피해 대신 공을 터뜨립니다.',
   aiHelper: '12초 동안 AI 도우미 드론이 등장해 대신 공을 맞혀줍니다.',
+}
+
+export function getItemTitles(locale: Locale): Record<ItemType, string> {
+  return locale === 'ko' ? ITEM_TITLES_KO : ITEM_TITLES_EN
+}
+
+export function getItemDescriptions(locale: Locale): Record<ItemType, string> {
+  return locale === 'ko' ? ITEM_DESCRIPTIONS_KO : ITEM_DESCRIPTIONS_EN
 }
 
 function traceShield(ctx: CanvasRenderingContext2D, scale = 1) {
