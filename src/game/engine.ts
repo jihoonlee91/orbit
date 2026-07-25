@@ -240,12 +240,27 @@ export function harpoonHitsBall(
   harpoonTipY: number,
   ball: Ball,
   harpoonBaseY = PLAYER_Y,
+  // Only Diagonal Wire ever passes something other than harpoonX here —
+  // every other kind travels straight up at a fixed x, so the segment
+  // from base to tip is purely vertical (the default collapses to exactly
+  // that case). Diagonal Wire's tether is a real line from the player out
+  // to the current tip, so a ball touching anywhere along it should pop,
+  // not just the exact tip point.
+  harpoonBaseX = harpoonX,
 ): boolean {
   const r = LEVEL_RADIUS[ball.level]
-  const segmentTop = Math.min(harpoonTipY, harpoonBaseY)
-  const segmentBottom = Math.max(harpoonTipY, harpoonBaseY)
-  const closestY = Math.min(Math.max(ball.y, segmentTop), segmentBottom)
-  const dx = ball.x - harpoonX
+  const segDx = harpoonX - harpoonBaseX
+  const segDy = harpoonTipY - harpoonBaseY
+  const lengthSq = segDx * segDx + segDy * segDy
+  const rawT =
+    lengthSq === 0
+      ? 0
+      : ((ball.x - harpoonBaseX) * segDx + (ball.y - harpoonBaseY) * segDy) /
+        lengthSq
+  const t = Math.max(0, Math.min(1, rawT))
+  const closestX = harpoonBaseX + t * segDx
+  const closestY = harpoonBaseY + t * segDy
+  const dx = ball.x - closestX
   const dy = ball.y - closestY
 
   return dx * dx + dy * dy <= r * r

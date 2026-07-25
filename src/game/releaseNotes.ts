@@ -9,6 +9,13 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.35.2',
+    date: '2026-07-26',
+    notes: [
+      "Fixed the Diagonal Wire only popping a balloon that touched its exact tip — it's a real harpoon on a wire now, so a balloon touching anywhere along the line pops, same as every other harpoon.",
+    ],
+  },
+  {
     version: '1.35.1',
     date: '2026-07-25',
     notes: [

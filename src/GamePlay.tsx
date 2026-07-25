@@ -3821,10 +3821,12 @@ function GamePlay({
                           harpoon.x,
                           harpoon.y,
                           getCritterX(critter, time),
-                          harpoon.kind === 'vulcan' ||
-                            harpoon.kind === 'diagonal'
+                          harpoon.kind === 'vulcan'
                             ? harpoon.y
                             : (harpoon.baseY ?? PLAYER_Y),
+                          harpoon.kind === 'diagonal'
+                            ? (harpoon.baseX ?? harpoon.x)
+                            : harpoon.x,
                         ),
                     )
               if (hitIndex === -1) {
@@ -3935,13 +3937,15 @@ function GamePlay({
                   h.x,
                   h.y,
                   b,
-                  // Vulcan and diagonal both move too fast/off-axis for
-                  // the usual "wire drawn from the player up to here"
-                  // segment model to make sense — collapsing baseY to
-                  // the tip's own y turns the segment into a point.
-                  h.kind === 'vulcan' || h.kind === 'diagonal'
-                    ? h.y
-                    : (h.baseY ?? PLAYER_Y),
+                  // Vulcan moves too fast/erratically for a "wire drawn
+                  // from the player up to here" segment to mean anything —
+                  // collapsing baseY to the tip's own y turns the segment
+                  // into a point. Diagonal Wire is a real tether though
+                  // (see harpoonBaseX below): the segment from launch to
+                  // tip is the actual line drawn on screen, so a ball
+                  // touching anywhere along it should pop.
+                  h.kind === 'vulcan' ? h.y : (h.baseY ?? PLAYER_Y),
+                  h.kind === 'diagonal' ? (h.baseX ?? h.x) : h.x,
                 ),
               )
               if (hitIndex === -1) {

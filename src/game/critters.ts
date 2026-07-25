@@ -108,13 +108,28 @@ export function harpoonHitsCritter(
   harpoonTipY: number,
   critterX: number,
   harpoonBaseY = PLAYER_Y,
+  // Only Diagonal Wire ever passes something other than harpoonX — every
+  // other kind travels straight up at a fixed x. Diagonal Wire's shaft is
+  // a real line from launch to tip, so the closest-point-on-segment check
+  // below degenerates to the old vertical-only behavior when this equals
+  // harpoonX, and correctly follows the angle otherwise.
+  harpoonBaseX = harpoonX,
 ): boolean {
-  const segmentTop = Math.min(harpoonTipY, harpoonBaseY)
-  const segmentBottom = Math.max(harpoonTipY, harpoonBaseY)
-  // The harpoon only threatens the critter while its shaft still spans the
-  // floor the critter walks on; once the whole shot is overhead it's past.
-  if (segmentTop > PLAYER_Y || segmentBottom < PLAYER_Y) return false
-  return Math.abs(critterX - harpoonX) <= CRITTER_HARPOON_REACH
+  const segDx = harpoonX - harpoonBaseX
+  const segDy = harpoonTipY - harpoonBaseY
+  const lengthSq = segDx * segDx + segDy * segDy
+  const rawT =
+    lengthSq === 0
+      ? 0
+      : ((critterX - harpoonBaseX) * segDx +
+          (PLAYER_Y - harpoonBaseY) * segDy) /
+        lengthSq
+  const t = Math.max(0, Math.min(1, rawT))
+  const closestX = harpoonBaseX + t * segDx
+  const closestY = harpoonBaseY + t * segDy
+  const dx = critterX - closestX
+  const dy = PLAYER_Y - closestY
+  return dx * dx + dy * dy <= CRITTER_HARPOON_REACH * CRITTER_HARPOON_REACH
 }
 
 export function critterHitsPlayer(

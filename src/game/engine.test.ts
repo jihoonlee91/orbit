@@ -361,6 +361,25 @@ describe('collision helpers', () => {
     expect(harpoonHitsBall(100, 300, ball, 300)).toBe(true)
   })
 
+  it('detects a ball touching any part of a diagonal wire, not just its tip', () => {
+    // Fired from (400, PLAYER_Y) out to (300, 400) — a ball sitting on the
+    // midpoint of that line should pop even though it's nowhere near the
+    // current tip.
+    const midpointBall: Ball = { id: 1, x: 350, y: 450, vx: 0, vy: 0, level: 2 }
+    expect(harpoonHitsBall(300, 400, midpointBall, PLAYER_Y, 400)).toBe(true)
+
+    // Well off the line entirely — same tip/base, different ball position.
+    const missBall: Ball = { id: 2, x: 700, y: 450, vx: 0, vy: 0, level: 2 }
+    expect(harpoonHitsBall(300, 400, missBall, PLAYER_Y, 400)).toBe(false)
+  })
+
+  it('a diagonal wire with no baseX degenerates to the vertical-only check', () => {
+    const ball: Ball = { id: 1, x: 100, y: 300, vx: 0, vy: 0, level: 2 }
+    expect(harpoonHitsBall(100, 80, ball)).toBe(
+      harpoonHitsBall(100, 80, ball, PLAYER_Y, 100),
+    )
+  })
+
   it('detects a ball overlapping the player', () => {
     const ball: Ball = { id: 1, x: 100, y: PLAYER_Y, vx: 0, vy: 0, level: 2 }
     expect(ballHitsPlayer(ball, 100)).toBe(true)

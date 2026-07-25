@@ -109,4 +109,20 @@ describe('harpoonHitsCritter', () => {
       false,
     )
   })
+
+  it('follows a diagonal shot back to its launch point instead of only its current tip', () => {
+    // Fired from (400, PLAYER_Y) and already risen/drifted to (300, PLAYER_Y
+    // - 250) — a critter standing near the LAUNCH point should still be hit
+    // via the segment, even though the current tip is nowhere near it.
+    expect(harpoonHitsCritter(300, PLAYER_Y - 250, 430, PLAYER_Y, 400)).toBe(
+      true,
+    )
+
+    // Without baseX (the old point-only behavior for diagonal shots), the
+    // same tip position misses entirely — confirms the fix actually
+    // changes the outcome, not just adds an unused parameter.
+    expect(harpoonHitsCritter(300, PLAYER_Y - 250, 430, PLAYER_Y - 250)).toBe(
+      false,
+    )
+  })
 })
