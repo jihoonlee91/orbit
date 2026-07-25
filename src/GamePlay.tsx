@@ -3018,6 +3018,25 @@ function GamePlay({
     }
 
     const loop = (time: number) => {
+      // A single uncaught exception anywhere in a frame used to kill the
+      // rAF loop for good — no error boundary exists around this canvas
+      // loop (it's not a render-phase React error), so the game would
+      // silently freeze dead: canvas, timer, and input all stop with
+      // nothing visible to the player and no way to recover short of
+      // reloading. Catching per-frame means a transient/edge-case error
+      // (bad data for one specific frame) degrades to a dropped frame
+      // instead of a dead game, and a persistent error becomes visible
+      // stutter/logging instead of silence — either is diagnosable, a
+      // silent freeze never was.
+      try {
+        runFrame(time)
+      } catch (err) {
+        console.error('[Orbit] game loop error — recovering next frame', err)
+      }
+      rafId = requestAnimationFrame(loop)
+    }
+
+    const runFrame = (time: number) => {
       if (lastTime === null) lastTime = time
       const frameDeltaSec = Math.min(
         Math.max((time - lastTime) / 1000, 0),
@@ -4591,8 +4610,6 @@ function GamePlay({
         setFps(Math.round(frameDeltaSec > 0 ? 1 / frameDeltaSec : 60))
         fpsUpdatedAt = time
       }
-
-      rafId = requestAnimationFrame(loop)
     }
 
     rafId = requestAnimationFrame(loop)

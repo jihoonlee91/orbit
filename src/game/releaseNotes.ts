@@ -9,6 +9,13 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.35.1',
+    date: '2026-07-25',
+    notes: [
+      "Fixed the game being able to freeze completely and silently on an unexpected error, with no way back except reloading the page — it now recovers on its own, and if something still goes seriously wrong you'll get a Reload button instead of a dead blank screen.",
+    ],
+  },
+  {
     version: '1.35.0',
     date: '2026-07-25',
     notes: [
