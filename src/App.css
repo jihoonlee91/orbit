@@ -221,6 +221,21 @@
   height: 100%;
   min-height: 0;
   font-family: var(--font-game);
+  /* Every other screen already has this safety net (see .screen above);
+     .gameplay never did. The canvas/touch-controls height budgets below
+     are computed from a fixed assumed HUD height, but the HUD's actual
+     height varies with how many hazard tags a stage has active (and with
+     fullscreen's browser-chrome-free viewport, the available height
+     itself differs from windowed mode) — when the real content is taller
+     than assumed, #root's overflow:hidden was silently clipping whatever
+     didn't fit, typically the bottom of the canvas or the touch controls
+     below it. Scrolling internally here means nothing is ever simply
+     invisible, without touching #root's own overflow:hidden (which
+     exists to stop page bounce/pull-to-refresh, not to hide this).
+  */
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .gameplay-hud {
@@ -462,6 +477,7 @@
   width: 100%;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
   touch-action: none;
 }
 
@@ -501,6 +517,9 @@
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.28);
   font: 700 var(--fs-sm) var(--font-game);
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .touch-button:active {
@@ -805,6 +824,18 @@
   .touch-fire {
     pointer-events: auto;
     transform: translateY(clamp(48px, 15vh, 74px));
+  }
+
+  /* .touch-fire carries both .touch-button and .touch-fire classes on the
+     same element, so its own :active state (scale(0.94), defined once
+     globally for every .touch-button) competed directly with the translateY
+     offset above for the single `transform` property — and won, since
+     `.touch-button:active` is more specific. The button visually snapped
+     back to its untranslated position (up near screen center) the instant
+     it was pressed. Reapply both transforms together here, at higher
+     specificity, so pressing Fire doesn't relocate it. */
+  .touch-fire.touch-button:active {
+    transform: translateY(clamp(48px, 15vh, 74px)) scale(0.94);
   }
 
   .touch-move .touch-button {

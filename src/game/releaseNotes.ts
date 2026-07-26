@@ -9,6 +9,14 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.36.2',
+    date: '2026-07-27',
+    notes: [
+      'Fixed the bottom of the play screen getting clipped off in fullscreen mode on some devices — the gameplay area now scrolls internally as a fallback instead of silently hiding whatever no longer fits.',
+      'Fixed the Fire button visually snapping to a different spot the instant you pressed it in landscape mode, and fixed holding it sometimes triggering the phone’s native text-selection/copy popup instead of firing.',
+    ],
+  },
+  {
     version: '1.36.1',
     date: '2026-07-27',
     notes: [
