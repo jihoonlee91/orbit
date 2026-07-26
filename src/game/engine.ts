@@ -50,7 +50,9 @@ const EARLY_STAGE_BALLS: readonly (readonly Omit<Ball, 'id'>[])[] = [
 
 export function createStage(stageIndex: number): Ball[] {
   if (stageIndex === HIDDEN_FINAL_STAGE_INDEX) {
-    const positions = [120, 260, 400, 560, 700, 840]
+    // A boss-fight opener, not a skirmish — 8 full-size balls instead of
+    // 6, evenly spread with margin to spare on a 960-wide arena.
+    const positions = [60, 180, 300, 420, 540, 660, 780, 900]
     return positions.map((x, id) => ({
       id,
       x,

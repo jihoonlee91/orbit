@@ -19,7 +19,7 @@ describe('hidden finale Eclipse Protocol', () => {
   })
 
   it('telegraphs every phase before enabling its hazard', () => {
-    for (let phaseIndex = 0; phaseIndex < 4; phaseIndex += 1) {
+    for (let phaseIndex = 0; phaseIndex < 5; phaseIndex += 1) {
       const phaseStart = phaseIndex * HIDDEN_FINALE_PHASE_DURATION_MS
       const warning = getHiddenFinalePhase(
         HIDDEN_FINAL_STAGE_INDEX,
@@ -31,12 +31,13 @@ describe('hidden finale Eclipse Protocol', () => {
       expect(warning.fireZones).toBeNull()
       expect(warning.gravityScale).toBe(1)
       expect(warning.jitterStrength).toBeNull()
+      expect(warning.swarmSpawn).toBeNull()
     }
   })
 
-  it('cycles through four exclusive mastered-hazard remixes', () => {
+  it('cycles through five named phases, banner-wise', () => {
     const activeOffset = HIDDEN_FINALE_WARNING_MS + 1
-    const phases = Array.from({ length: 4 }, (_, phaseIndex) =>
+    const phases = Array.from({ length: 5 }, (_, phaseIndex) =>
       getHiddenFinalePhase(
         HIDDEN_FINAL_STAGE_INDEX,
         phaseIndex * HIDDEN_FINALE_PHASE_DURATION_MS + activeOffset,
@@ -48,12 +49,55 @@ describe('hidden finale Eclipse Protocol', () => {
       'twinSingularity',
       'solarCollapse',
       'zeroGFracture',
+      'balloonSwarm',
     ])
-    expect(phases[0]?.current).not.toBeNull()
-    expect(phases[1]?.wells).toHaveLength(2)
-    expect(phases[2]?.fireZones).toHaveLength(4)
-    expect(phases[3]?.gravityScale).toBeLessThan(0.3)
-    expect(phases[3]?.jitterStrength).toBeGreaterThan(140)
+  })
+
+  it('stacks hazards cumulatively instead of swapping one out for the next', () => {
+    // A boss-fight climax, not a rotation: each named phase should ADD its
+    // hazard on top of everything unlocked earlier in the same 45s cycle,
+    // so Balloon Swarm (the last phase) has all five active at once.
+    const activeOffset = HIDDEN_FINALE_WARNING_MS + 1
+    const phases = Array.from({ length: 5 }, (_, phaseIndex) =>
+      getHiddenFinalePhase(
+        HIDDEN_FINAL_STAGE_INDEX,
+        phaseIndex * HIDDEN_FINALE_PHASE_DURATION_MS + activeOffset,
+      )!,
+    )
+
+    // Rift Gale: only the wind so far.
+    expect(phases[0].current).not.toBeNull()
+    expect(phases[0].wells).toBeNull()
+    expect(phases[0].fireZones).toBeNull()
+    expect(phases[0].gravityScale).toBe(1)
+    expect(phases[0].swarmSpawn).toBeNull()
+
+    // Twin Singularity: wind persists, wells join.
+    expect(phases[1].current).not.toBeNull()
+    expect(phases[1].wells).toHaveLength(2)
+    expect(phases[1].fireZones).toBeNull()
+
+    // Solar Collapse: wind + wells persist, fire zones join.
+    expect(phases[2].current).not.toBeNull()
+    expect(phases[2].wells).toHaveLength(2)
+    expect(phases[2].fireZones).toHaveLength(4)
+    expect(phases[2].gravityScale).toBe(1)
+
+    // Zero-G Fracture: everything so far persists, gravity/jitter join.
+    expect(phases[3].current).not.toBeNull()
+    expect(phases[3].wells).toHaveLength(2)
+    expect(phases[3].fireZones).toHaveLength(4)
+    expect(phases[3].gravityScale).toBeLessThan(0.4)
+    expect(phases[3].jitterStrength).toBeGreaterThan(100)
+    expect(phases[3].swarmSpawn).toBeNull()
+
+    // Balloon Swarm: the full stack, all five at once.
+    expect(phases[4].current).not.toBeNull()
+    expect(phases[4].wells).toHaveLength(2)
+    expect(phases[4].fireZones).toHaveLength(4)
+    expect(phases[4].gravityScale).toBeLessThan(0.4)
+    expect(phases[4].swarmSpawn).not.toBeNull()
+    expect(phases[4].swarmSpawn?.count).toBeGreaterThanOrEqual(2)
   })
 
   it('raises intensity after one complete protocol cycle', () => {
@@ -64,11 +108,30 @@ describe('hidden finale Eclipse Protocol', () => {
     )!
     const secondGale = getHiddenFinalePhase(
       HIDDEN_FINAL_STAGE_INDEX,
-      4 * HIDDEN_FINALE_PHASE_DURATION_MS + activeOffset,
+      5 * HIDDEN_FINALE_PHASE_DURATION_MS + activeOffset,
     )!
 
     expect(secondGale.current!.strength).toBeGreaterThan(
       firstGale.current!.strength,
+    )
+  })
+
+  it('spawns more, faster balloon swarms with each protocol cycle', () => {
+    const activeOffset = HIDDEN_FINALE_WARNING_MS + 1
+    const firstSwarm = getHiddenFinalePhase(
+      HIDDEN_FINAL_STAGE_INDEX,
+      4 * HIDDEN_FINALE_PHASE_DURATION_MS + activeOffset,
+    )!
+    const secondSwarm = getHiddenFinalePhase(
+      HIDDEN_FINAL_STAGE_INDEX,
+      9 * HIDDEN_FINALE_PHASE_DURATION_MS + activeOffset,
+    )!
+
+    expect(secondSwarm.swarmSpawn!.count).toBeGreaterThanOrEqual(
+      firstSwarm.swarmSpawn!.count,
+    )
+    expect(secondSwarm.swarmSpawn!.intervalMs).toBeLessThan(
+      firstSwarm.swarmSpawn!.intervalMs,
     )
   })
 })

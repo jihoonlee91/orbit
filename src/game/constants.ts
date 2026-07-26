@@ -442,6 +442,15 @@ export function getItemWeights(stageIndex: number): [ItemType, number][] {
       ['timePlus', 10],
       ['overdrive', 5],
     )
+    // This is meant to be a real boss fight fought all the way through —
+    // Dynamite/Shockwave clearing (or nearly clearing) the whole screen in
+    // one pickup let a lucky early drop end it in seconds. The persistent
+    // ball-refill safety net in GamePlay.tsx already blunts this, but
+    // removing them from the pool entirely is the cleaner fix: the fight
+    // stays a fight regardless of what drops.
+    return weights.filter(
+      ([type]) => type !== 'dynamite' && type !== 'shockwave',
+    )
   }
   return weights
 }

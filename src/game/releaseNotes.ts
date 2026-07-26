@@ -9,6 +9,14 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.36.0',
+    date: '2026-07-26',
+    notes: [
+      'The secret final stage (201) is now a real boss fight: twice as long, 8 starting balloons instead of 6, and every 9-second phase now STACKS on top of the last (wind, then wells, then fire, then low gravity, then a balloon swarm — all five active together by the end of each cycle) instead of swapping one hazard for another.',
+      "Dynamite and Shockwave no longer drop on the final stage — they used to let a lucky pickup clear the whole fight in seconds. If the balloon count ever runs low with more than 20 seconds left, more balloons flood in — the fight can't be cheaply ended early, but it always has a genuine, clearable final stretch.",
+    ],
+  },
+  {
     version: '1.35.2',
     date: '2026-07-26',
     notes: [

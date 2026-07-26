@@ -134,6 +134,7 @@ import {
 import {
   getHiddenFinalePhase,
   isHiddenFinaleStage,
+  HIDDEN_FINALE_REFILL_CUTOFF_SECONDS,
   type HiddenFinalePhase,
 } from './game/hiddenFinale'
 import {
@@ -2556,6 +2557,7 @@ function GamePlay({
   const pausedAtRef = useRef<number | null>(null)
   const hiddenFinaleStartedAtRef = useRef(performance.now())
   const hiddenFinalePhaseSignatureRef = useRef('')
+  const hiddenFinaleSwarmSpawnedAtRef = useRef(0)
   const timeRemainingRef = useRef(stageTimeSeconds)
   const lastDisplayedTimeRef = useRef(stageTimeSeconds)
   const lastFireAtRef = useRef(0)
@@ -2684,6 +2686,7 @@ function GamePlay({
       portalCooldownsRef.current.clear()
       hiddenFinaleStartedAtRef.current = performance.now()
       hiddenFinalePhaseSignatureRef.current = ''
+      hiddenFinaleSwarmSpawnedAtRef.current = 0
       playerXRef.current = CANVAS_WIDTH / 2
       playerYRef.current = PLAYER_Y
       playerVxRef.current = 0
@@ -2777,6 +2780,7 @@ function GamePlay({
     aiHelperUntilRef.current += pausedFor
     lastHitAtRef.current += pausedFor
     hiddenFinaleStartedAtRef.current += pausedFor
+    hiddenFinaleSwarmSpawnedAtRef.current += pausedFor
     harpoonsRef.current = harpoonsRef.current.map((harpoon) => ({
       ...harpoon,
       expiresAt:
@@ -3086,6 +3090,31 @@ function GamePlay({
                 : translatePlatform(p, stageIndex, i, time),
             )
             .filter((p): p is Obstacle => p !== null)
+
+          const swarmSpawn = activeHiddenFinalePhase?.swarmSpawn
+          if (
+            swarmSpawn &&
+            !activeHiddenFinalePhase?.warning &&
+            time >=
+              hiddenFinaleSwarmSpawnedAtRef.current + swarmSpawn.intervalMs
+          ) {
+            hiddenFinaleSwarmSpawnedAtRef.current = time
+            const spawnedBalls: Ball[] = []
+            for (let i = 0; i < swarmSpawn.count; i += 1) {
+              const x = 80 + Math.random() * (CANVAS_WIDTH - 160)
+              spawnedBalls.push({
+                id: nextId(),
+                x,
+                y: 60,
+                vx:
+                  (Math.random() < 0.5 ? -1 : 1) * (180 + Math.random() * 120),
+                vy: -40,
+                level: swarmSpawn.level,
+              })
+            }
+            ballsRef.current = [...ballsRef.current, ...spawnedBalls]
+          }
+
           const isClockActive = time < clockUntilRef.current
           const isHourglassActive =
             !isClockActive && time < hourglassUntilRef.current
@@ -4320,6 +4349,34 @@ function GamePlay({
             }
             buffsDisplayRef.current = nextBuffs
             setBuffs(nextBuffs)
+          }
+
+          // A boss fight, not a skirmish: as long as there's more than the
+          // cutoff's worth of time left, running the ball count down
+          // (however that happened — good aim, a lucky item, anything)
+          // refills instead of ending the fight. Stops well before the
+          // clock runs out so the ending is still genuinely reachable, not
+          // a fight that refills forever.
+          if (
+            isHiddenFinale &&
+            !endedRef.current &&
+            ballsRef.current.length < 4 &&
+            timeRemainingRef.current > HIDDEN_FINALE_REFILL_CUTOFF_SECONDS
+          ) {
+            const refillBalls: Ball[] = []
+            for (let i = 0; i < 4; i += 1) {
+              const x = 80 + Math.random() * (CANVAS_WIDTH - 160)
+              refillBalls.push({
+                id: nextId(),
+                x,
+                y: 90,
+                vx:
+                  (Math.random() < 0.5 ? -1 : 1) * (260 + Math.random() * 160),
+                vy: -60,
+                level: 2,
+              })
+            }
+            ballsRef.current = [...ballsRef.current, ...refillBalls]
           }
 
           if (!endedRef.current && ballsRef.current.length === 0) {

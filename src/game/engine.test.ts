@@ -108,11 +108,13 @@ describe('createStage', () => {
     }
   })
 
-  it('gives hidden stage 201 a symmetric six-ball eclipse formation', () => {
+  it('gives hidden stage 201 a symmetric eight-ball eclipse formation', () => {
     const balls = createStage(STAGE_COUNT - 1)
-    expect(balls).toHaveLength(6)
+    expect(balls).toHaveLength(8)
     expect(balls.every((ball) => ball.level === 2)).toBe(true)
-    expect(balls.map((ball) => ball.x)).toEqual([120, 260, 400, 560, 700, 840])
+    expect(balls.map((ball) => ball.x)).toEqual([
+      60, 180, 300, 420, 540, 660, 780, 900,
+    ])
     expect(
       balls.every((ball, index) =>
         index % 2 === 0 ? ball.vx > 0 : ball.vx < 0,
@@ -125,8 +127,8 @@ describe('createStage', () => {
     expect(getStageTimeSeconds(PUBLIC_STAGE_COUNT - 1)).toBeGreaterThan(0)
   })
 
-  it('gives the hidden finale a fair boss-length clock and comeback drops', () => {
-    expect(getStageTimeSeconds(STAGE_COUNT - 1)).toBe(75)
+  it('gives the hidden finale a real boss-length clock and comeback drops', () => {
+    expect(getStageTimeSeconds(STAGE_COUNT - 1)).toBe(150)
     expect(getStageItemDropChance(STAGE_COUNT - 1)).toBe(0.22)
   })
 

@@ -192,4 +192,16 @@ describe('getItemWeights', () => {
     expect(types).toContain('lockOn')
     expect(types).toContain('overdrive')
   })
+
+  it('excludes the two instant-clear items from hidden stage 201', () => {
+    // A boss fight meant to be fought all the way through, not ended in
+    // one lucky drop — every other stage still has both.
+    const finaleTypes = getItemWeights(200).map(([type]) => type)
+    expect(finaleTypes).not.toContain('dynamite')
+    expect(finaleTypes).not.toContain('shockwave')
+
+    const normalTypes = getItemWeights(199).map(([type]) => type)
+    expect(normalTypes).toContain('dynamite')
+    expect(normalTypes).toContain('shockwave')
+  })
 })

@@ -154,7 +154,7 @@ export const HAZARD_CATALOG: readonly HazardEntry[] = [
     name: 'Eclipse Protocol',
     startStage: HIDDEN_FINAL_STAGE_INDEX,
     description:
-      'Four mastered hazards rotate every nine seconds. Watch the phase banner: every shift starts with a safe warning before Rift Gale, Twin Singularity, Solar Collapse, or Zero-G Fracture activates.',
+      'Every nine seconds a new hazard joins the fight and stays — Rift Gale, then Twin Singularity, Solar Collapse, Zero-G Fracture, and finally a Balloon Swarm, all active together by the end of each cycle. Watch the phase banner: every shift starts with a safe warning first.',
   },
 ]
 
