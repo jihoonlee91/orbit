@@ -2564,10 +2564,21 @@
 }
 
 @media (max-width: 720px) and (orientation: portrait) {
+  /* A fixed 2-row grid with only Total Score explicitly placed (row 2)
+     used to assume a specific item count — but the HUD can carry a
+     variable, hazard-dependent number of tags (Portals, Breeze, Current,
+     Roaming Critter, Chaos Rift, AI Companion, ...), any number of which
+     can be active on a given stage. Once enough tags were on screen at
+     once, the auto-placed items (stage name, HP bar, hazard tags) would
+     spill into or past the row Total Score was pinned to, overlapping it
+     or overflowing the grid outright. Flex-wrap has no fixed row/column
+     count to violate — it always wraps to as many lines as the content
+     needs, so nothing can ever overlap regardless of how many hazards a
+     stage stacks.
+  */
   .gameplay-hud {
-    display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr) auto;
-    grid-template-rows: repeat(2, minmax(32px, auto));
+    display: flex;
+    flex-wrap: wrap;
     flex: 0 0 auto;
     width: 100%;
     height: auto;
@@ -2583,9 +2594,12 @@
   }
 
   .gameplay-hud .hud-score {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: stretch;
+    /* flex-basis: 100% always starts a fresh line in a wrapping flex
+       container, giving Total Score its own full-width row (as before)
+       without needing to know how many items came before it. Everything
+       after it in DOM order (combo, FPS, the demo badge, Pause) simply
+       continues wrapping onto the following line(s). */
+    flex: 1 1 100%;
     text-align: center;
   }
 

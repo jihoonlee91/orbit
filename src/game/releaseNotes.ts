@@ -9,6 +9,13 @@ export type ReleaseNote = {
 // recent releases are kept; older entries can be dropped.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.36.1',
+    date: '2026-07-27',
+    notes: [
+      'Fixed the in-game HUD (HP gauge, Total Score, hazard tags) overlapping or spilling out of its box in portrait mode — it was a fixed layout that assumed a specific number of items, which broke on stages with several hazards active at once. It now always wraps cleanly no matter how many are showing.',
+    ],
+  },
+  {
     version: '1.36.0',
     date: '2026-07-26',
     notes: [
