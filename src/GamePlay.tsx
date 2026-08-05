@@ -2086,7 +2086,7 @@ const HIT_EFFECT_MS = 350
 // short" range for a real reward beat, not a jump-cut.
 const CLEAR_REVEAL_HOLD_MS = 700
 const CLEAR_REVEAL_CROSSFADE_MS = 1400
-const CLEAR_REVEAL_SETTLE_MS = 900
+const CLEAR_REVEAL_SETTLE_MS = 1900
 
 type BuffDisplay = {
   doubleWire: number
@@ -4529,15 +4529,20 @@ function GamePlay({
         drawCurrentFlow(ctx, getCurrentWindAx(stageChaosCurrent, time), time)
       }
       if (acidRainZones) drawAcidRain(ctx, acidRainZones, time)
-      terrain.platforms.forEach((platform, i) => {
-        if (destroyedPlatformsRef.current.has(i)) return
-        drawObstacle(
-          ctx,
-          translatePlatform(platform, stageIndex, i, time),
-          isDestructiblePlatform(stageIndex, i),
-          isMovingPlatform(stageIndex, i),
-        )
-      })
+      // The clear-reveal crossfade replaces the arena with the stage
+      // illustration, so leftover obstacles/platforms would float over it
+      // instead of disappearing with the rest of the arena.
+      if (clearedAtRef.current === null) {
+        terrain.platforms.forEach((platform, i) => {
+          if (destroyedPlatformsRef.current.has(i)) return
+          drawObstacle(
+            ctx,
+            translatePlatform(platform, stageIndex, i, time),
+            isDestructiblePlatform(stageIndex, i),
+            isMovingPlatform(stageIndex, i),
+          )
+        })
+      }
       if (terrain.ladder) drawLadder(ctx, terrain.ladder)
       for (const pair of portalPairs) {
         drawPortal(ctx, pair.entry, time)
