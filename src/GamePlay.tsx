@@ -2086,7 +2086,7 @@ const HIT_EFFECT_MS = 350
 // short" range for a real reward beat, not a jump-cut.
 const CLEAR_REVEAL_HOLD_MS = 700
 const CLEAR_REVEAL_CROSSFADE_MS = 1400
-const CLEAR_REVEAL_SETTLE_MS = 900
+const CLEAR_REVEAL_SETTLE_MS = 1900
 
 type BuffDisplay = {
   doubleWire: number
@@ -4381,6 +4381,11 @@ function GamePlay({
 
           if (!endedRef.current && ballsRef.current.length === 0) {
             endedRef.current = true
+            // Clear the platforms along with the last ball so the revealed
+            // illustration is not obscured by gameplay geometry.
+            destroyedPlatformsRef.current = new Set(
+              terrain.platforms.map((_, index) => index),
+            )
             const timeBonus =
               Math.ceil(timeRemainingRef.current) * TIME_BONUS_PER_SECOND
             scoreRef.current = addToTotalScore(scoreRef.current, timeBonus)
